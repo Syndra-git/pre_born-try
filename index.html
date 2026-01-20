@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>武汉大学国家网络安全学院 - 专业学习互助平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E40AF',
+                        secondary: '#3B82F6',
+                        light: '#F3F4F6',
+                        dark: '#1F2937',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .transition-all-300 {
+                transition: all 0.3s ease;
+            }
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-primary to-secondary min-h-screen flex items-center justify-center p-4">
+    <div class="container mx-auto max-w-4xl">
+        <!-- 平台标志 -->
+        <div class="text-center mb-12">
+            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <i class="fa fa-shield text-primary text-4xl"></i>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 text-shadow">武大网安学习互助平台</h1>
+            <p class="text-xl text-white text-shadow max-w-2xl mx-auto">
+                覆盖课程学习、实践操作、特色方向、资源拓展四大核心场景
+            </p>
+        </div>
+
+        <!-- 选择卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- 学习资源查找 -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all-300 transform hover:-translate-y-2">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                    <i class="fa fa-search text-primary text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-dark mb-4">寻找学习资源</h2>
+                <p class="text-gray-600 mb-6">
+                    浏览课程学习、实践操作、特色方向等板块，获取专业学习资源和指导
+                </p>
+                <ul class="text-gray-600 space-y-2 mb-8">
+                    <li class="flex items-center">
+                        <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                        <span>核心课程学习资料</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                        <span>实践操作指南</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                        <span>特色方向学习内容</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                        <span>资源拓展与互助交流</span>
+                    </li>
+                </ul>
+                <a href="resources.html" class="block w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-secondary transition-all-300 text-center">
+                    开始学习 <i class="fa fa-arrow-right ml-2"></i>
+                </a>
+            </div>
+
+            <!-- 资源分享参与 -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all-300 transform hover:-translate-y-2">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                    <i class="fa fa-share-alt text-primary text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-dark mb-4">参与分享资源</h2>
+                <p class="text-gray-600 mb-6">
+                    加入互助交流社区，分享学习经验、资源和实践成果，帮助其他同学
+                </p>
+                <ul class="text-gray-600 space-y-2 mb-8">
+                    <li class="flex items-center">
+                        <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                        <span>问答广场答疑</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                        <span>学习小组协作</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                        <span>经验分享交流</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                        <span>共建学习资源库</span>
+                    </li>
+                </ul>
+                <a href="share.html" class="block w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-secondary transition-all-300 text-center">
+                    参与分享 <i class="fa fa-users ml-2"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- 登录/注册链接 -->
+        <div class="text-center mt-12">
+            <a href="login.html" class="text-white hover:text-blue-200 transition-all-300 font-semibold">
+                登录/注册 <i class="fa fa-user ml-2"></i>
+            </a>
+        </div>
+
+        <!-- 底部信息 -->
+        <div class="text-center mt-16 text-white">
+            <p>&copy; 2024 武汉大学国家网络安全学院 专业学习互助平台</p>
+            <p class="text-sm mt-2 opacity-80">助力网安学子全面发展</p>
+        </div>
+    </div>
+
+    <script>
+        // 登录状态检查
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查是否已登录
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (!isLoggedIn) {
+                // 未登录，重定向到登录页面
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // 添加页面加载动画
+            const cards = document.querySelectorAll('.rounded-2xl');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('opacity-100', 'translate-y-0');
+                    card.classList.remove('opacity-0', 'translate-y-10');
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>
