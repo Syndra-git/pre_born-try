@@ -3,609 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>学习资源中心 - 武大网安学习互助平台</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#1E40AF',
-                        secondary: '#3B82F6',
-                        light: '#F3F4F6',
-                        dark: '#1F2937',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                }
-            }
-        }
+    <title>学习资源查询 - 武汉大学国家网络安全学院</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="script.js"></script>
+    <script type="module">
+        // 页面加载时加载分享内容
+        window.onload = function() {
+            loadShares();
+        };
     </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .content-auto {
-                content-visibility: auto;
-            }
-            .text-shadow {
-                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            .transition-all-300 {
-                transition: all 0.3s ease;
-            }
-        }
-    </style>
 </head>
-<body class="bg-gray-50 font-sans">
-    <!-- 顶部导航栏 -->
-    <header class="bg-primary text-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <i class="fa fa-shield text-2xl"></i>
-                <h1 class="text-xl font-bold">武大网安学习互助平台</h1>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <ul>
+                    <li><a href="resources.html">学习资源查询</a></li>
+                    <li><a href="share.html">资源分享</a></li>
+                    <li><a href="group.html">参与互助小组</a></li>
+                </ul>
             </div>
-            <nav class="hidden md:flex space-x-6">
-                <a href="index.html" class="hover:text-secondary transition-all-300">首页</a>
-                <a href="resources.html" class="hover:text-secondary transition-all-300">资源中心</a>
-                <a href="share.html" class="hover:text-secondary transition-all-300">分享社区</a>
-                <a href="#" id="logout-btn" class="hover:text-secondary transition-all-300">登出</a>
-            </nav>
-            <button class="md:hidden text-white focus:outline-none" id="mobile-menu-button">
-                <i class="fa fa-bars text-xl"></i>
-            </button>
+        </nav>
+        <div class="header">
+            <h1>武汉大学国家网络安全学院</h1>
+            <h2>专业学习互助平台</h2>
         </div>
-        <!-- 移动端菜单 -->
-        <div class="md:hidden hidden bg-primary-light" id="mobile-menu">
-            <div class="container mx-auto px-4 py-2 space-y-2">
-                <a href="index.html" class="block py-2 hover:bg-blue-700 px-2 rounded transition-all-300">首页</a>
-                <a href="resources.html" class="block py-2 hover:bg-blue-700 px-2 rounded transition-all-300">资源中心</a>
-                <a href="share.html" class="block py-2 hover:bg-blue-700 px-2 rounded transition-all-300">分享社区</a>
-            </div>
-        </div>
-    </header>
-
-    <!-- 页面标题 -->
-    <section class="bg-gradient-to-r from-primary to-secondary text-white py-12">
-        <div class="container mx-auto px-4 text-center">
-            <h2 class="text-3xl font-bold mb-4 text-shadow">学习资源中心</h2>
-            <p class="text-lg max-w-3xl mx-auto">
-                浏览课程学习、实践操作、特色方向等板块，获取专业学习资源和指导
-            </p>
-        </div>
-    </section>
-
-    <!-- 总目录导航 -->
-    <section class="py-8 bg-light">
-        <div class="container mx-auto px-4">
-            <div class="bg-white rounded-xl shadow-md p-6">
-                <h3 class="text-xl font-bold mb-4 text-dark">快速导航</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <a href="#courses" class="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-all-300">
-                        <i class="fa fa-graduation-cap text-primary mr-3 text-xl"></i>
-                        <span class="font-semibold">核心课程学习</span>
-                    </a>
-                    <a href="#practice" class="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-all-300">
-                        <i class="fa fa-wrench text-primary mr-3 text-xl"></i>
-                        <span class="font-semibold">实践操作指南</span>
-                    </a>
-                    <a href="#special" class="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-all-300">
-                        <i class="fa fa-compass text-primary mr-3 text-xl"></i>
-                        <span class="font-semibold">特色方向学习</span>
-                    </a>
+        <div class="content">
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="搜索学习资源...">
+                    <button onclick="searchResources()">搜索</button>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 核心课程学习板块 -->
-    <section id="courses" class="py-16 bg-white">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-12 text-dark">
-                <i class="fa fa-graduation-cap text-primary mr-2"></i>核心课程学习
-            </h2>
-            
-            <!-- 通识教育课程专区 -->
-            <div class="mb-16">
-                <div class="flex items-center mb-6">
-                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white mr-3">
-                        <i class="fa fa-university"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-dark">通识教育课程专区</h3>
-                </div>
-                <div class="bg-light p-6 rounded-xl shadow-md">
-                    <p class="mb-4 text-gray-700">覆盖要求：所有学生必修/选修的通识课程（需修满 12 学分）</p>
-                    
-                    <div class="mb-6">
-                        <h4 class="text-xl font-semibold mb-3 text-secondary">核心必修（4 选 3）</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                                <h5 class="font-semibold mb-2">人文社科经典导引</h5>
-                                <p class="text-gray-600 text-sm">核心考点、阅读书单、论文写作框架</p>
-                                <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                    查看详情 <i class="fa fa-angle-right ml-1"></i>
-                                </button>
-                            </div>
-                            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                                <h5 class="font-semibold mb-2">自然科学经典导引</h5>
-                                <p class="text-gray-600 text-sm">核心考点、阅读书单、论文写作框架</p>
-                                <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                    查看详情 <i class="fa fa-angle-right ml-1"></i>
-                                </button>
-                            </div>
-                            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                                <h5 class="font-semibold mb-2">中国精神导引</h5>
-                                <p class="text-gray-600 text-sm">核心考点、阅读书单、论文写作框架</p>
-                                <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                    查看详情 <i class="fa fa-angle-right ml-1"></i>
-                                </button>
-                            </div>
-                            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                                <h5 class="font-semibold mb-2">人工智能导引</h5>
-                                <p class="text-gray-600 text-sm">核心考点、阅读书单、论文写作框架</p>
-                                <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                    查看详情 <i class="fa fa-angle-right ml-1"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h4 class="text-xl font-semibold mb-3 text-secondary">模块选修</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                                <h5 class="font-semibold mb-2">中华文化与世界文明</h5>
-                                <p class="text-gray-600 text-sm">知识点总结、选课建议</p>
-                                <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                    查看详情 <i class="fa fa-angle-right ml-1"></i>
-                                </button>
-                            </div>
-                            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                                <h5 class="font-semibold mb-2">艺术体验与审美鉴赏</h5>
-                                <p class="text-gray-600 text-sm">至少 2 学分，知识点总结、选课建议</p>
-                                <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                    查看详情 <i class="fa fa-angle-right ml-1"></i>
-                                </button>
-                            </div>
-                            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                                <h5 class="font-semibold mb-2">科学精神与生命关怀</h5>
-                                <p class="text-gray-600 text-sm">知识点总结、选课建议</p>
-                                <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                    查看详情 <i class="fa fa-angle-right ml-1"></i>
-                                </button>
-                            </div>
-                        </div>
+                <div class="recent-searches">
+                    <h3>最近热门搜索</h3>
+                    <div class="tags">
+                        <span class="tag" onclick="searchByTag('网络安全基础')">网络安全基础</span>
+                        <span class="tag" onclick="searchByTag('密码学')">密码学</span>
+                        <span class="tag" onclick="searchByTag('网络攻击与防御')">网络攻击与防御</span>
+                        <span class="tag" onclick="searchByTag('安全编程')">安全编程</span>
+                        <span class="tag" onclick="searchByTag('渗透测试')">渗透测试</span>
                     </div>
                 </div>
             </div>
-            
-            <!-- 公共基础课程专区 -->
-            <div class="mb-16">
-                <div class="flex items-center mb-6">
-                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white mr-3">
-                        <i class="fa fa-book"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-dark">公共基础课程专区</h3>
-                </div>
-                <div class="bg-light p-6 rounded-xl shadow-md">
-                    <p class="mb-4 text-gray-700">覆盖要求：公共基础必修（37 学分）+ 公共基础选修（24 学分）+ 跨学院公共基础（3-5 学分）</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                            <h4 class="text-lg font-semibold mb-3 text-secondary">思政类</h4>
-                            <ul class="text-gray-600 space-y-2 text-sm">
-                                <li>• 马克思主义基本原理</li>
-                                <li>• 毛泽东思想和中国特色社会主义理论体系概论</li>
-                                <li>• 考点梳理、大思政实践课报告模板</li>
-                            </ul>
-                            <button class="mt-3 text-primary hover:underline text-sm flex items-center">
-                                查看详情 <i class="fa fa-angle-right ml-1"></i>
-                            </button>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                            <h4 class="text-lg font-semibold mb-3 text-secondary">数理类</h4>
-                            <ul class="text-gray-600 space-y-2 text-sm">
-                                <li>• 高等数学 A、线性代数 A</li>
-                                <li>• 概率论与数理统计 A、大学物理 B</li>
-                                <li>• 公式推导、习题解析、易错点总结</li>
-                            </ul>
-                            <button class="mt-3 text-primary hover:underline text-sm flex items-center">
-                                查看详情 <i class="fa fa-angle-right ml-1"></i>
-                            </button>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                            <h4 class="text-lg font-semibold mb-3 text-secondary">工具类</h4>
-                            <ul class="text-gray-600 space-y-2 text-sm">
-                                <li>• 大学英语、体育、军事理论与技能</li>
-                                <li>• 国家安全教育</li>
-                                <li>• 英语考级资料、体育达标指南、军事理论考点</li>
-                            </ul>
-                            <button class="mt-3 text-primary hover:underline text-sm flex items-center">
-                                查看详情 <i class="fa fa-angle-right ml-1"></i>
-                            </button>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                            <h4 class="text-lg font-semibold mb-3 text-secondary">跨学院必修</h4>
-                            <ul class="text-gray-600 space-y-2 text-sm">
-                                <li>• 信息安全专业（≥3 学分）</li>
-                                <li>• 网络空间安全专业（≥5 学分）</li>
-                                <li>• 试验班（≥3 学分）专属跨院课程</li>
-                            </ul>
-                            <button class="mt-3 text-primary hover:underline text-sm flex items-center">
-                                查看详情 <i class="fa fa-angle-right ml-1"></i>
-                            </button>
-                        </div>
+            <div class="posts" id="search-results">
+                <div class="post">
+                    <h3>网络安全基础课程学习总结</h3>
+                    <div class="course-info">网络安全基础 学习内容概述</div>
+                    <div class="content">
+                        本文总结了网络安全基础课程的主要内容，包括网络协议、安全模型、常见攻击类型等。建议大家重点关注TCP/IP协议栈的安全特性，以及密码学基础理论。
                     </div>
                 </div>
-            </div>
-            
-            <!-- 大类平台课程专区 -->
-            <div class="mb-16">
-                <div class="flex items-center mb-6">
-                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white mr-3">
-                        <i class="fa fa-code"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-dark">大类平台课程专区</h3>
-                </div>
-                <div class="bg-light p-6 rounded-xl shadow-md">
-                    <p class="mb-4 text-gray-700">覆盖课程：网络空间安全导论、数字逻辑与 EDA、数据结构、计算机组成原理、数据库系统及安全、操作系统原理及安全、计算机网络、网络安全</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                            <h5 class="font-semibold mb-2">网络空间安全导论</h5>
-                            <p class="text-gray-600 text-sm">核心知识点图谱、课后习题答案、课堂笔记整理、考试重点提炼</p>
-                            <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                查看详情 <i class="fa fa-angle-right ml-1"></i>
-                            </button>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                            <h5 class="font-semibold mb-2">数字逻辑与 EDA</h5>
-                            <p class="text-gray-600 text-sm">核心知识点图谱、课后习题答案、课堂笔记整理、考试重点提炼</p>
-                            <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                查看详情 <i class="fa fa-angle-right ml-1"></i>
-                            </button>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                            <h5 class="font-semibold mb-2">数据结构</h5>
-                            <p class="text-gray-600 text-sm">核心知识点图谱、课后习题答案、课堂笔记整理、考试重点提炼</p>
-                            <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                查看详情 <i class="fa fa-angle-right ml-1"></i>
-                            </button>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                            <h5 class="font-semibold mb-2">计算机组成原理</h5>
-                            <p class="text-gray-600 text-sm">核心知识点图谱、课后习题答案、课堂笔记整理、考试重点提炼</p>
-                            <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                查看详情 <i class="fa fa-angle-right ml-1"></i>
-                            </button>
-                        </div>
+                <div class="post">
+                    <h3>密码学实验操作指南</h3>
+                    <div class="course-info">密码学 学习方法总结</div>
+                    <div class="content">
+                        分享密码学实验的操作步骤和注意事项，包括对称加密、非对称加密、哈希函数等实验的具体实现方法。实验过程中要注意保护密钥安全，避免信息泄露。
                     </div>
                 </div>
-            </div>
-            
-            <!-- 专业核心课程专区 -->
-            <div>
-                <div class="flex items-center mb-6">
-                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white mr-3">
-                        <i class="fa fa-cogs"></i>
+                <div class="post">
+                    <h3>网络攻击与防御实践经验</h3>
+                    <div class="course-info">网络攻击与防御 学习方法总结</div>
+                    <div class="content">
+                        结合实际案例，分享网络攻击与防御的实践经验，包括常见攻击手段的识别与防范，以及安全防御策略的制定。建议大家多进行实战演练，提高安全意识。
                     </div>
-                    <h3 class="text-2xl font-bold text-dark">专业核心课程专区</h3>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- 信息安全专业 -->
-                    <div class="bg-light p-6 rounded-xl shadow-md">
-                        <h4 class="text-xl font-semibold mb-4 text-secondary">
-                            <i class="fa fa-lock mr-2"></i>信息安全专业（080904K）
-                        </h4>
-                        <ul class="text-gray-600 space-y-2">
-                            <li>• 离散数学</li>
-                            <li>• 汇编语言与接口设计</li>
-                            <li>• 算法设计与分析</li>
-                            <li>• 编译原理</li>
-                            <li>• 密码学引论</li>
-                            <li>• 软件安全</li>
-                        </ul>
-                        <p class="mt-3 text-gray-600 text-sm">按课程整理技术原理、代码示例、考点解析</p>
-                        <button class="mt-4 text-primary hover:underline flex items-center">
-                            查看详情 <i class="fa fa-angle-right ml-1"></i>
-                        </button>
+                <div class="post">
+                    <h3>安全编程最佳实践</h3>
+                    <div class="course-info">安全编程 学习内容概述</div>
+                    <div class="content">
+                        总结安全编程的最佳实践，包括输入验证、内存管理、权限控制等方面的注意事项。编写安全代码时要遵循最小权限原则，避免常见的安全漏洞。
                     </div>
-                    
-                    <!-- 网络空间安全专业 -->
-                    <div class="bg-light p-6 rounded-xl shadow-md">
-                        <h4 class="text-xl font-semibold mb-4 text-secondary">
-                            <i class="fa fa-globe mr-2"></i>网络空间安全专业（080911TK）
-                        </h4>
-                        <ul class="text-gray-600 space-y-2">
-                            <li>• 离散数学</li>
-                            <li>• 密码学引论</li>
-                            <li>• 人工智能</li>
-                            <li>• 自然语言处理</li>
-                            <li>• 社会计算</li>
-                            <li>• 内容安全</li>
-                            <li>• 数字取证</li>
-                        </ul>
-                        <p class="mt-3 text-gray-600 text-sm">侧重技术 + 法律 + 管理交叉知识点</p>
-                        <button class="mt-4 text-primary hover:underline flex items-center">
-                            查看详情 <i class="fa fa-angle-right ml-1"></i>
-                        </button>
+                </div>
+                <div class="post">
+                    <h3>渗透测试工具使用指南</h3>
+                    <div class="course-info">渗透测试 学习方法总结</div>
+                    <div class="content">
+                        介绍常用的渗透测试工具及其使用方法，包括Nmap、Metasploit、Burp Suite等。使用这些工具时要遵守法律法规，仅在授权范围内进行测试。
                     </div>
                 </div>
             </div>
         </div>
-    </section>
-
-    <!-- 实践操作指南板块 -->
-    <section id="practice" class="py-16 bg-gray-50">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-12 text-dark">
-                <i class="fa fa-wrench text-primary mr-2"></i>实践操作指南
-            </h2>
-            
-            <!-- 平台实践课程专区 -->
-            <div class="mb-16">
-                <div class="flex items-center mb-6">
-                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white mr-3">
-                        <i class="fa fa-laptop"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-dark">平台实践课程专区</h3>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <p class="mb-6 text-gray-700">覆盖课程：数据结构实验实训、安全创客实践、计算机设计实践、操作系统设计与实践、计算机网络实践、网络安全实验、毕业设计</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="bg-light p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                            <h5 class="font-semibold mb-2">数据结构实验实训</h5>
-                            <p class="text-gray-600 text-sm">实验目的拆解、操作步骤图文指南、常见错误排查、实验报告模板</p>
-                            <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                查看详情 <i class="fa fa-angle-right ml-1"></i>
-                            </button>
-                        </div>
-                        <div class="bg-light p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                            <h5 class="font-semibold mb-2">安全创客实践</h5>
-                            <p class="text-gray-600 text-sm">实验目的拆解、操作步骤图文指南、常见错误排查、实验报告模板</p>
-                            <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                查看详情 <i class="fa fa-angle-right ml-1"></i>
-                            </button>
-                        </div>
-                        <div class="bg-light p-4 rounded-lg shadow-sm hover:shadow-md transition-all-300">
-                            <h5 class="font-semibold mb-2">计算机设计实践</h5>
-                            <p class="text-gray-600 text-sm">实验目的拆解、操作步骤图文指南、常见错误排查、实验报告模板</p>
-                            <button class="mt-2 text-primary hover:underline text-sm flex items-center">
-                                查看详情 <i class="fa fa-angle-right ml-1"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 专业必修实践专区 -->
-            <div>
-                <div class="flex items-center mb-6">
-                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white mr-3">
-                        <i class="fa fa-flask"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-dark">专业必修实践专区</h3>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- 信息安全专业 -->
-                    <div class="bg-white p-6 rounded-xl shadow-md">
-                        <h4 class="text-xl font-semibold mb-4 text-secondary">
-                            <i class="fa fa-lock mr-2"></i>信息安全专业
-                        </h4>
-                        <ul class="text-gray-600 space-y-2">
-                            <li>• 编程能力综合训练</li>
-                            <li>• 硬件设计基础</li>
-                            <li>• 汇编语言与接口设计实验</li>
-                            <li>• 密码学基础实验</li>
-                            <li>• 网络对抗演练</li>
-                        </ul>
-                        <p class="mt-3 text-gray-600 text-sm">提供代码工程、攻防演练流程、硬件操作视频</p>
-                        <button class="mt-4 text-primary hover:underline flex items-center">
-                            查看详情 <i class="fa fa-angle-right ml-1"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- 网络空间安全专业 -->
-                    <div class="bg-white p-6 rounded-xl shadow-md">
-                        <h4 class="text-xl font-semibold mb-4 text-secondary">
-                            <i class="fa fa-globe mr-2"></i>网络空间安全专业
-                        </h4>
-                        <ul class="text-gray-600 space-y-2">
-                            <li>• 人工智能实验</li>
-                            <li>• 自然语言处理实验</li>
-                            <li>• AI 程序设计实训</li>
-                            <li>• 内容安全实验</li>
-                            <li>• 数字取证实验</li>
-                        </ul>
-                        <p class="mt-3 text-gray-600 text-sm">AI 算法实现、数据处理流程、取证工具使用指南</p>
-                        <button class="mt-4 text-primary hover:underline flex items-center">
-                            查看详情 <i class="fa fa-angle-right ml-1"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <div class="footer">
+            <p>© 2026 武汉大学国家网络安全学院</p>
         </div>
-    </section>
-
-    <!-- 特色方向学习板块 -->
-    <section id="special" class="py-16 bg-white">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-12 text-dark">
-                <i class="fa fa-compass text-primary mr-2"></i>特色方向学习
-            </h2>
-            
-            <!-- 技术方向细分专区 -->
-            <div class="mb-16">
-                <div class="flex items-center mb-6">
-                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white mr-3">
-                        <i class="fa fa-code-fork"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-dark">技术方向细分专区</h3>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="bg-light p-6 rounded-xl shadow-md hover:shadow-lg transition-all-300">
-                        <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white mb-4">
-                            <i class="fa fa-desktop text-xl"></i>
-                        </div>
-                        <h4 class="text-xl font-semibold mb-3 text-secondary">系统安全方向</h4>
-                        <p class="text-gray-600 mb-4">操作系统安全、嵌入式系统安全等（漏洞挖掘、防护方案）</p>
-                        <button class="text-primary hover:underline flex items-center">
-                            查看详情 <i class="fa fa-angle-right ml-1"></i>
-                        </button>
-                    </div>
-                    <div class="bg-light p-6 rounded-xl shadow-md hover:shadow-lg transition-all-300">
-                        <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white mb-4">
-                            <i class="fa fa-wifi text-xl"></i>
-                        </div>
-                        <h4 class="text-xl font-semibold mb-3 text-secondary">网络安全方向</h4>
-                        <p class="text-gray-600 mb-4">网络对抗、入侵检测、网络舆情分析等（攻防工具、分析方法）</p>
-                        <button class="text-primary hover:underline flex items-center">
-                            查看详情 <i class="fa fa-angle-right ml-1"></i>
-                        </button>
-                    </div>
-                    <div class="bg-light p-6 rounded-xl shadow-md hover:shadow-lg transition-all-300">
-                        <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white mb-4">
-                            <i class="fa fa-key text-xl"></i>
-                        </div>
-                        <h4 class="text-xl font-semibold mb-3 text-secondary">密码方向</h4>
-                        <p class="text-gray-600 mb-4">对称密码、公钥密码、后量子密码等（算法原理、工程实现）</p>
-                        <button class="text-primary hover:underline flex items-center">
-                            查看详情 <i class="fa fa-angle-right ml-1"></i>
-                        </button>
-                    </div>
-                    <div class="bg-light p-6 rounded-xl shadow-md hover:shadow-lg transition-all-300">
-                        <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white mb-4">
-                            <i class="fa fa-file-text text-xl"></i>
-                        </div>
-                        <h4 class="text-xl font-semibold mb-3 text-secondary">内容安全方向</h4>
-                        <p class="text-gray-600 mb-4">自然语言处理、内容审核、数字取证等（技术 + 法律交叉应用）</p>
-                        <button class="text-primary hover:underline flex items-center">
-                            查看详情 <i class="fa fa-angle-right ml-1"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 底部信息 -->
-    <footer class="bg-dark text-white py-12">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                    <h4 class="text-xl font-bold mb-4">关于平台</h4>
-                    <p class="text-gray-400">武汉大学国家网络安全学院专业学习互助平台，致力于为学生提供全方位的学习资源和实践指导。</p>
-                </div>
-                <div>
-                    <h4 class="text-xl font-bold mb-4">快速链接</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="index.html" class="hover:text-white transition-all-300">首页</a></li>
-                        <li><a href="resources.html" class="hover:text-white transition-all-300">资源中心</a></li>
-                        <li><a href="share.html" class="hover:text-white transition-all-300">分享社区</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-xl font-bold mb-4">联系方式</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><i class="fa fa-envelope mr-2"></i> contact@wuhanu.edu.cn</li>
-                        <li><i class="fa fa-phone mr-2"></i> (027) 6877-5888</li>
-                        <li><i class="fa fa-map-marker mr-2"></i> 武汉大学国家网络安全学院</li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-xl font-bold mb-4">关注我们</h4>
-                    <div class="flex space-x-4">
-                        <a href="#" class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-500 transition-all-300">
-                            <i class="fa fa-weixin"></i>
-                        </a>
-                        <a href="#" class="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center hover:bg-red-500 transition-all-300">
-                            <i class="fa fa-weibo"></i>
-                        </a>
-                        <a href="#" class="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center hover:bg-blue-300 transition-all-300">
-                            <i class="fa fa-qq"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2024 武汉大学国家网络安全学院 专业学习互助平台. 保留所有权利.</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- 回到顶部按钮 -->
-    <button id="back-to-top" class="fixed bottom-8 right-8 bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-secondary">
-        <i class="fa fa-arrow-up"></i>
-    </button>
-
-    <script>
-        // 登录状态检查
-        document.addEventListener('DOMContentLoaded', function() {
-            // 检查是否已登录
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            if (!isLoggedIn) {
-                // 未登录，重定向到登录页面
-                window.location.href = 'login.html';
-                return;
-            }
-        });
-
-        // 移动端菜单切换
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
-        
-        mobileMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-        });
-        
-        // 平滑滚动
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    window.scrollTo({
-                        top: target.offsetTop - 80,
-                        behavior: 'smooth'
-                    });
-                    // 关闭移动端菜单
-                    mobileMenu.classList.add('hidden');
-                }
-            });
-        });
-        
-        // 回到顶部按钮
-        const backToTopButton = document.getElementById('back-to-top');
-        
-        window.addEventListener('scroll', () => {
-            if (window.pageYOffset > 300) {
-                backToTopButton.classList.remove('opacity-0', 'invisible');
-                backToTopButton.classList.add('opacity-100', 'visible');
-            } else {
-                backToTopButton.classList.add('opacity-0', 'invisible');
-                backToTopButton.classList.remove('opacity-100', 'visible');
-            }
-        });
-        
-        backToTopButton.addEventListener('click', () => {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
-
-        // 登出按钮点击事件
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                // 清除登录状态
-                localStorage.removeItem('isLoggedIn');
-                // 重定向到登录页面
-                window.location.href = 'login.html';
-            });
-        }
-    </script>
+    </div>
 </body>
 </html>

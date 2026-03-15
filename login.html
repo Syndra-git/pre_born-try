@@ -191,8 +191,25 @@
 
         // 模拟用户数据库
         function getUsers() {
-            const users = localStorage.getItem('users');
-            return users ? JSON.parse(users) : [];
+            // 检查是否已有用户数据
+            let users = localStorage.getItem('users');
+            if (users) {
+                return JSON.parse(users);
+            }
+            
+            // 预设测试账号
+            const defaultUsers = [
+                {
+                    name: '测试用户',
+                    email: 'test@example.com',
+                    studentId: '2020000000',
+                    password: 'test123'
+                }
+            ];
+            
+            // 保存预设用户到本地存储
+            localStorage.setItem('users', JSON.stringify(defaultUsers));
+            return defaultUsers;
         }
 
         function saveUser(user) {
@@ -205,6 +222,18 @@
             const users = getUsers();
             return users.find(user => user.email === email);
         }
+
+        // 页面加载时自动填充记住的用户凭据
+        window.addEventListener('load', function() {
+            const rememberedUser = localStorage.getItem('rememberedUser');
+            const rememberedPassword = localStorage.getItem('rememberedPassword');
+            
+            if (rememberedUser && rememberedPassword) {
+                document.getElementById('login-email').value = rememberedUser;
+                document.getElementById('login-password').value = rememberedPassword;
+                document.getElementById('remember').checked = true;
+            }
+        });
 
         // 显示错误提示
         function showError(element, message) {
@@ -234,6 +263,7 @@
         document.querySelector('#login-form button').addEventListener('click', () => {
             const emailInput = document.getElementById('login-email');
             const passwordInput = document.getElementById('login-password');
+            const rememberCheckbox = document.getElementById('remember');
             const email = emailInput.value.trim();
             const password = passwordInput.value;
 
@@ -263,6 +293,16 @@
             // 登录成功
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('currentUser', email);
+            
+            // 记住我功能
+            if (rememberCheckbox.checked) {
+                localStorage.setItem('rememberedUser', email);
+                localStorage.setItem('rememberedPassword', password);
+            } else {
+                localStorage.removeItem('rememberedUser');
+                localStorage.removeItem('rememberedPassword');
+            }
+            
             window.location.href = 'index.html';
         });
 

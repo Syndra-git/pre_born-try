@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>参与互助小组 - 武汉大学国家网络安全学院</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="script.js"></script>
+    <script type="module">
+        // 页面加载时初始化
+        window.onload = function() {
+            // 显示浏览页面时加载小组申请
+            document.querySelector('a[onclick="showSection(\'browse-groups\')"]').addEventListener('click', function() {
+                setTimeout(loadGroups, 100);
+            });
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <ul>
+                    <li><a href="resources.html">学习资源查询</a></li>
+                    <li><a href="share.html">资源分享</a></li>
+                    <li><a href="group.html">参与互助小组</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div class="header">
+            <h1>武汉大学国家网络安全学院</h1>
+            <h2>专业学习互助平台</h2>
+        </div>
+        <div class="content">
+            <div class="button-group">
+                <a href="#" class="btn" onclick="showSection('fill-form')">填写</a>
+                <a href="#" class="btn" onclick="showSection('browse-groups')">浏览</a>
+            </div>
+            
+            <div id="fill-form" class="form-section" style="display: none;">
+                <h2>填写互助小组表单</h2>
+                <form onsubmit="submitGroupForm(event)">
+                    <div class="form-group">
+                        <label for="name">姓名</label>
+                        <input type="text" id="name" required placeholder="请输入姓名">
+                    </div>
+                    <div class="form-group">
+                        <label for="introduction">简介</label>
+                        <textarea id="introduction" required placeholder="请输入个人简介"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="needs">需求</label>
+                        <textarea id="needs" required placeholder="请输入学习需求"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact">联系方式</label>
+                        <input type="text" id="contact" required placeholder="请输入联系方式">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit">提交表单</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="browse-groups" class="posts" style="display: none;">
+                <h2 style="text-align: center; color: #1a56db; margin-bottom: 30px;">互助小组列表</h2>
+                <div class="search-section">
+                    <div class="search-box">
+                        <input type="text" id="group-search-input" placeholder="搜索互助小组...">
+                        <button onclick="searchGroups()">搜索</button>
+                    </div>
+                    <div class="recent-searches">
+                        <h3>最新提交的表单</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <p>© 2026 武汉大学国家网络安全学院</p>
+        </div>
+    </div>
+</body>
+</html>
