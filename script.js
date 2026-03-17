@@ -4,6 +4,19 @@ import { supabaseUrl, supabaseKey } from './supabaseConfig.js';
 // 初始化 Supabase
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// 全局变量，用于存储函数
+window.loadShares = null;
+window.searchResources = null;
+window.searchByTag = null;
+window.filterPosts = null;
+window.toggleOtherOption = null;
+window.submitShare = null;
+window.showSection = null;
+window.submitGroupForm = null;
+window.loadGroups = null;
+window.searchGroups = null;
+window.filterGroups = null;
+
 // 学习资源查询页面功能
 function searchResources() {
     const searchInput = document.getElementById('search-input');
@@ -14,12 +27,14 @@ function searchResources() {
         alert('请输入搜索关键词');
     }
 }
+window.searchResources = searchResources;
 
 function searchByTag(tag) {
     const searchInput = document.getElementById('search-input');
     searchInput.value = tag;
     searchResources();
 }
+window.searchByTag = searchByTag;
 
 // 根据关键词过滤帖子
 async function filterPosts(searchTerm) {
@@ -69,6 +84,7 @@ async function filterPosts(searchTerm) {
         console.error('Error searching shares:', error);
     }
 }
+window.filterPosts = filterPosts;
 
 // 加载分享内容
 async function loadShares() {
@@ -104,6 +120,7 @@ async function loadShares() {
         console.error('Error loading shares:', error);
     }
 }
+window.loadShares = loadShares;
 
 // 资源分享页面功能
 function toggleOtherOption() {
@@ -115,6 +132,7 @@ function toggleOtherOption() {
         otherTypeContainer.style.display = 'none';
     }
 }
+window.toggleOtherOption = toggleOtherOption;
 
 async function submitShare(event) {
     event.preventDefault();
@@ -153,6 +171,7 @@ async function submitShare(event) {
         alert('请填写完整的分享信息');
     }
 }
+window.submitShare = submitShare;
 
 // 互助小组页面功能
 function showSection(sectionId) {
@@ -163,6 +182,7 @@ function showSection(sectionId) {
     // 显示选中的部分
     document.getElementById(sectionId).style.display = 'block';
 }
+window.showSection = showSection;
 
 async function submitGroupForm(event) {
     event.preventDefault();
@@ -196,6 +216,7 @@ async function submitGroupForm(event) {
         alert('请填写完整的表单信息');
     }
 }
+window.submitGroupForm = submitGroupForm;
 
 // 加载小组申请
 async function loadGroups() {
@@ -241,6 +262,7 @@ async function loadGroups() {
         console.error('Error loading groups:', error);
     }
 }
+window.loadGroups = loadGroups;
 
 // 互助小组搜索功能
 function searchGroups() {
@@ -252,6 +274,7 @@ function searchGroups() {
         alert('请输入搜索关键词');
     }
 }
+window.searchGroups = searchGroups;
 
 // 根据关键词过滤小组申请
 async function filterGroups(searchTerm) {
@@ -310,3 +333,4 @@ async function filterGroups(searchTerm) {
         console.error('Error searching groups:', error);
     }
 }
+window.filterGroups = filterGroups;

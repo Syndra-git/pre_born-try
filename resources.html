@@ -6,10 +6,15 @@
     <title>学习资源查询 - 武汉大学国家网络安全学院</title>
     <link rel="stylesheet" href="style.css">
     <script type="module" src="script.js"></script>
-    <script type="module">
+    <script>
         // 页面加载时加载分享内容
         window.onload = function() {
-            loadShares();
+            // 延迟执行，确保script.js已经加载完成
+            setTimeout(function() {
+                if (typeof loadShares === 'function') {
+                    loadShares();
+                }
+            }, 100);
         };
     </script>
 </head>

@@ -6,12 +6,17 @@
     <title>参与互助小组 - 武汉大学国家网络安全学院</title>
     <link rel="stylesheet" href="style.css">
     <script type="module" src="script.js"></script>
-    <script type="module">
+    <script>
         // 页面加载时初始化
         window.onload = function() {
             // 显示浏览页面时加载小组申请
             document.querySelector('a[onclick="showSection(\'browse-groups\')"]').addEventListener('click', function() {
-                setTimeout(loadGroups, 100);
+                // 延迟执行，确保script.js已经加载完成
+                setTimeout(function() {
+                    if (typeof loadGroups === 'function') {
+                        loadGroups();
+                    }
+                }, 100);
             });
         };
     </script>
