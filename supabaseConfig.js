@@ -1,3 +1,3 @@
 // supabaseConfig.js
 export const supabaseUrl = 'https://qaojyxepfibnqzypfwxm.supabase.co';
-export const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhb2p5eGVwZmlibnF6eXBmd3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNDIwMzQsImV4cCI6MjA4ODcxODAzNH0.dxu7PjjcV5789Hp2MVMEmIV4c2iy6Kxbo-SaU-_mdBE'
+export const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhb2p5eGVwZmlibnF6eXBmd3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNDIwMzQsImV4cCI6MjA4ODcxODAzNH0.dxu7PjjcV5789Hp2MVMEmIV4c2iy6Kxbo-SaU-_mdBE';

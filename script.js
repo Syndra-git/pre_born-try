@@ -4,6 +4,39 @@ import { supabaseUrl, supabaseKey } from './supabaseConfig.js';
 // 初始化 Supabase
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// 测试 Supabase 连接
+async function testSupabaseConnection() {
+    try {
+        // 尝试执行一个简单的查询来测试连接
+        const { data, error } = await supabase
+            .from('shares')
+            .select('*')
+            .limit(1);
+        
+        if (error) {
+            console.error('Supabase 连接失败:', error);
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Supabase 连接异常:', error);
+        return false;
+    }
+}
+
+// 检查是否使用本地存储模式
+let useLocalStorage = false;
+
+// 页面加载时测试连接
+window.onload = function() {
+    testSupabaseConnection().then((connected) => {
+        if (!connected) {
+            console.warn('Supabase 连接失败，将使用本地存储模式');
+            useLocalStorage = true;
+        }
+    });
+};
+
 // 全局变量，用于存储函数
 window.loadShares = null;
 window.searchResources = null;
@@ -40,15 +73,24 @@ window.searchByTag = searchByTag;
 async function filterPosts(searchTerm) {
     const searchResults = document.getElementById('search-results');
     try {
-        // 从 Supabase 获取所有分享
-        const { data, error } = await supabase
-            .from('shares')
-            .select('*')
-            .order('created_at', { ascending: false });
+        let data = [];
         
-        if (error) {
-            console.error('Error searching shares:', error);
-            return;
+        if (useLocalStorage) {
+            // 从本地存储获取分享
+            data = JSON.parse(localStorage.getItem('shares') || '[]');
+        } else {
+            // 从 Supabase 获取所有分享
+            const { data: supabaseData, error } = await supabase
+                .from('shares')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error('Error searching shares:', error);
+                return;
+            }
+            
+            data = supabaseData;
         }
         
         // 清空现有内容
@@ -90,15 +132,24 @@ window.filterPosts = filterPosts;
 async function loadShares() {
     const searchResults = document.getElementById('search-results');
     try {
-        // 从 Supabase 获取分享
-        const { data, error } = await supabase
-            .from('shares')
-            .select('*')
-            .order('created_at', { ascending: false });
+        let data = [];
         
-        if (error) {
-            console.error('Error loading shares:', error);
-            return;
+        if (useLocalStorage) {
+            // 从本地存储获取分享
+            data = JSON.parse(localStorage.getItem('shares') || '[]');
+        } else {
+            // 从 Supabase 获取分享
+            const { data: supabaseData, error } = await supabase
+                .from('shares')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error('Error loading shares:', error);
+                return;
+            }
+            
+            data = supabaseData;
         }
         
         // 清空现有内容
@@ -149,23 +200,45 @@ async function submitShare(event) {
     const shareContent = document.getElementById('share-content').value;
     
     if (courseName && finalShareType && shareTitle && shareContent) {
-        // 存储到 Supabase
-        const { error } = await supabase
-            .from('shares')
-            .insert({
-                title: shareTitle,
-                courseName: courseName,
-                shareType: finalShareType,
-                content: shareContent
-            });
-        
-        if (error) {
-            console.error('Error inserting share:', error);
+        try {
+            if (useLocalStorage) {
+                // 使用本地存储
+                const shares = JSON.parse(localStorage.getItem('shares') || '[]');
+                shares.unshift({
+                    id: Date.now().toString(),
+                    title: shareTitle,
+                    courseName: courseName,
+                    shareType: finalShareType,
+                    content: shareContent,
+                    created_at: new Date().toISOString()
+                });
+                localStorage.setItem('shares', JSON.stringify(shares));
+                alert('分享提交成功！');
+                // 跳转到学习资源查询页面
+                window.location.href = 'resources.html';
+            } else {
+                // 存储到 Supabase
+                const { error } = await supabase
+                    .from('shares')
+                    .insert({
+                        title: shareTitle,
+                        courseName: courseName,
+                        shareType: finalShareType,
+                        content: shareContent
+                    });
+                
+                if (error) {
+                    console.error('Error inserting share:', error);
+                    alert('提交失败，请重试');
+                } else {
+                    alert('分享提交成功！');
+                    // 跳转到学习资源查询页面
+                    window.location.href = 'resources.html';
+                }
+            }
+        } catch (error) {
+            console.error('Error submitting share:', error);
             alert('提交失败，请重试');
-        } else {
-            alert('分享提交成功！');
-            // 跳转到学习资源查询页面
-            window.location.href = 'resources.html';
         }
     } else {
         alert('请填写完整的分享信息');
@@ -192,25 +265,49 @@ async function submitGroupForm(event) {
     const contact = document.getElementById('contact').value;
     
     if (name && introduction && needs && contact) {
-        // 存储到 Supabase
-        const { error } = await supabase
-            .from('groups')
-            .insert({
-                name: name,
-                introduction: introduction,
-                needs: needs,
-                contact: contact
-            });
-        
-        if (error) {
-            console.error('Error inserting group:', error);
+        try {
+            if (useLocalStorage) {
+                // 使用本地存储
+                const groups = JSON.parse(localStorage.getItem('groups') || '[]');
+                groups.unshift({
+                    id: Date.now().toString(),
+                    name: name,
+                    introduction: introduction,
+                    needs: needs,
+                    contact: contact,
+                    created_at: new Date().toISOString()
+                });
+                localStorage.setItem('groups', JSON.stringify(groups));
+                alert('表单提交成功！');
+                // 显示浏览页面
+                showSection('browse-groups');
+                // 重新加载小组列表
+                loadGroups();
+            } else {
+                // 存储到 Supabase
+                const { error } = await supabase
+                    .from('groups')
+                    .insert({
+                        name: name,
+                        introduction: introduction,
+                        needs: needs,
+                        contact: contact
+                    });
+                
+                if (error) {
+                    console.error('Error inserting group:', error);
+                    alert('提交失败，请重试');
+                } else {
+                    alert('表单提交成功！');
+                    // 显示浏览页面
+                    showSection('browse-groups');
+                    // 重新加载小组列表
+                    loadGroups();
+                }
+            }
+        } catch (error) {
+            console.error('Error submitting group form:', error);
             alert('提交失败，请重试');
-        } else {
-            alert('表单提交成功！');
-            // 显示浏览页面
-            showSection('browse-groups');
-            // 重新加载小组列表
-            loadGroups();
         }
     } else {
         alert('请填写完整的表单信息');
@@ -232,15 +329,24 @@ async function loadGroups() {
     });
     
     try {
-        // 从 Supabase 获取小组申请
-        const { data, error } = await supabase
-            .from('groups')
-            .select('*')
-            .order('created_at', { ascending: false });
+        let data = [];
         
-        if (error) {
-            console.error('Error loading groups:', error);
-            return;
+        if (useLocalStorage) {
+            // 从本地存储获取小组申请
+            data = JSON.parse(localStorage.getItem('groups') || '[]');
+        } else {
+            // 从 Supabase 获取小组申请
+            const { data: supabaseData, error } = await supabase
+                .from('groups')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error('Error loading groups:', error);
+                return;
+            }
+            
+            data = supabaseData;
         }
         
         // 为每个小组申请创建帖子元素
@@ -290,15 +396,24 @@ async function filterGroups(searchTerm) {
     });
     
     try {
-        // 从 Supabase 获取所有小组申请
-        const { data, error } = await supabase
-            .from('groups')
-            .select('*')
-            .order('created_at', { ascending: false });
+        let data = [];
         
-        if (error) {
-            console.error('Error searching groups:', error);
-            return;
+        if (useLocalStorage) {
+            // 从本地存储获取小组申请
+            data = JSON.parse(localStorage.getItem('groups') || '[]');
+        } else {
+            // 从 Supabase 获取所有小组申请
+            const { data: supabaseData, error } = await supabase
+                .from('groups')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error('Error searching groups:', error);
+                return;
+            }
+            
+            data = supabaseData;
         }
         
         let found = false;
