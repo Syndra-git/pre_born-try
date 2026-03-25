@@ -1,9 +1,3 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.1/+esm';
-import { supabaseUrl, supabaseKey } from './supabaseConfig.js';
-
-// 初始化 Supabase
-const supabase = createClient(supabaseUrl, supabaseKey);
-
 // 全局变量，用于存储函数
 window.loadShares = null;
 window.searchResources = null;
@@ -17,27 +11,127 @@ window.loadGroups = null;
 window.searchGroups = null;
 window.filterGroups = null;
 
+// 尝试加载 Supabase SDK
+let supabase = null;
+let supabaseLoaded = false;
+
+// 初始化函数
+async function initializeApp() {
+    try {
+        // 尝试从 CDN 加载 Supabase SDK
+        const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.1/+esm');
+        const { supabaseUrl, supabaseKey } = await import('./supabaseConfig.js');
+        
+        // 初始化 Supabase
+        supabase = createClient(supabaseUrl, supabaseKey);
+        supabaseLoaded = true;
+        console.log('Supabase SDK 加载成功');
+    } catch (error) {
+        console.error('Supabase SDK 加载失败:', error);
+        supabaseLoaded = false;
+        // 提供基本功能，即使 Supabase 加载失败
+        initializeBasicFunctions();
+    }
+}
+
+// 初始化基本功能
+function initializeBasicFunctions() {
+    // 基本的 showSection 函数
+    window.showSection = function(sectionId) {
+        try {
+            // 隐藏所有部分
+            const fillForm = document.getElementById('fill-form');
+            const browseGroups = document.getElementById('browse-groups');
+            if (fillForm) fillForm.style.display = 'none';
+            if (browseGroups) browseGroups.style.display = 'none';
+            
+            // 显示选中的部分
+            const section = document.getElementById(sectionId);
+            if (section) section.style.display = 'block';
+        } catch (error) {
+            console.error('showSection 函数执行失败:', error);
+        }
+    };
+    
+    // 基本的 toggleOtherOption 函数
+    window.toggleOtherOption = function() {
+        try {
+            const shareType = document.getElementById('share-type');
+            const otherTypeContainer = document.getElementById('other-type-container');
+            if (shareType && otherTypeContainer) {
+                if (shareType.value === '其他') {
+                    otherTypeContainer.style.display = 'block';
+                } else {
+                    otherTypeContainer.style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error('toggleOtherOption 函数执行失败:', error);
+        }
+    };
+    
+    // 基本的搜索函数
+    window.searchResources = function() {
+        alert('搜索功能暂时不可用，请稍后再试');
+    };
+    
+    window.searchGroups = function() {
+        alert('搜索功能暂时不可用，请稍后再试');
+    };
+    
+    // 基本的提交函数
+    window.submitShare = function(event) {
+        event.preventDefault();
+        alert('提交功能暂时不可用，请稍后再试');
+    };
+    
+    window.submitGroupForm = function(event) {
+        event.preventDefault();
+        alert('提交功能暂时不可用，请稍后再试');
+    };
+    
+    // 基本的加载函数
+    window.loadShares = function() {
+        console.log('加载分享内容...');
+    };
+    
+    window.loadGroups = function() {
+        console.log('加载小组申请...');
+    };
+}
+
+// 立即初始化应用
+initializeApp();
+
 // 学习资源查询页面功能
-function searchResources() {
+async function searchResources() {
+    if (!supabaseLoaded) {
+        alert('搜索功能暂时不可用，请稍后再试');
+        return;
+    }
+    
     const searchInput = document.getElementById('search-input');
     const searchTerm = searchInput.value.trim();
     if (searchTerm) {
-        filterPosts(searchTerm);
+        await filterPosts(searchTerm);
     } else {
         alert('请输入搜索关键词');
     }
 }
-window.searchResources = searchResources;
 
-function searchByTag(tag) {
+async function searchByTag(tag) {
     const searchInput = document.getElementById('search-input');
     searchInput.value = tag;
-    searchResources();
+    await searchResources();
 }
-window.searchByTag = searchByTag;
 
 // 根据关键词过滤帖子
 async function filterPosts(searchTerm) {
+    if (!supabaseLoaded) {
+        alert('搜索功能暂时不可用，请稍后再试');
+        return;
+    }
+    
     const searchResults = document.getElementById('search-results');
     try {
         // 从 Supabase 获取所有分享
@@ -48,6 +142,7 @@ async function filterPosts(searchTerm) {
         
         if (error) {
             console.error('Error searching shares:', error);
+            alert('搜索失败，请重试');
             return;
         }
         
@@ -82,12 +177,17 @@ async function filterPosts(searchTerm) {
         }
     } catch (error) {
         console.error('Error searching shares:', error);
+        alert('搜索失败，请重试');
     }
 }
-window.filterPosts = filterPosts;
 
 // 加载分享内容
 async function loadShares() {
+    if (!supabaseLoaded) {
+        console.log('Supabase 未加载，无法加载分享内容');
+        return;
+    }
+    
     const searchResults = document.getElementById('search-results');
     try {
         // 从 Supabase 获取分享
@@ -120,7 +220,6 @@ async function loadShares() {
         console.error('Error loading shares:', error);
     }
 }
-window.loadShares = loadShares;
 
 // 资源分享页面功能
 function toggleOtherOption() {
@@ -132,10 +231,15 @@ function toggleOtherOption() {
         otherTypeContainer.style.display = 'none';
     }
 }
-window.toggleOtherOption = toggleOtherOption;
 
 async function submitShare(event) {
     event.preventDefault();
+    
+    if (!supabaseLoaded) {
+        alert('提交功能暂时不可用，请稍后再试');
+        return;
+    }
+    
     const courseName = document.getElementById('course-name').value;
     const shareType = document.getElementById('share-type').value;
     let finalShareType = shareType;
@@ -171,7 +275,6 @@ async function submitShare(event) {
         alert('请填写完整的分享信息');
     }
 }
-window.submitShare = submitShare;
 
 // 互助小组页面功能
 function showSection(sectionId) {
@@ -182,10 +285,15 @@ function showSection(sectionId) {
     // 显示选中的部分
     document.getElementById(sectionId).style.display = 'block';
 }
-window.showSection = showSection;
 
 async function submitGroupForm(event) {
     event.preventDefault();
+    
+    if (!supabaseLoaded) {
+        alert('提交功能暂时不可用，请稍后再试');
+        return;
+    }
+    
     const name = document.getElementById('name').value;
     const introduction = document.getElementById('introduction').value;
     const needs = document.getElementById('needs').value;
@@ -210,16 +318,20 @@ async function submitGroupForm(event) {
             // 显示浏览页面
             showSection('browse-groups');
             // 重新加载小组列表
-            loadGroups();
+            await loadGroups();
         }
     } else {
         alert('请填写完整的表单信息');
     }
 }
-window.submitGroupForm = submitGroupForm;
 
 // 加载小组申请
 async function loadGroups() {
+    if (!supabaseLoaded) {
+        console.log('Supabase 未加载，无法加载小组申请');
+        return;
+    }
+    
     const browseGroups = document.getElementById('browse-groups');
     const searchSection = browseGroups.querySelector('.search-section');
     
@@ -262,22 +374,30 @@ async function loadGroups() {
         console.error('Error loading groups:', error);
     }
 }
-window.loadGroups = loadGroups;
 
 // 互助小组搜索功能
-function searchGroups() {
+async function searchGroups() {
+    if (!supabaseLoaded) {
+        alert('搜索功能暂时不可用，请稍后再试');
+        return;
+    }
+    
     const searchInput = document.getElementById('group-search-input');
     const searchTerm = searchInput.value.trim();
     if (searchTerm) {
-        filterGroups(searchTerm);
+        await filterGroups(searchTerm);
     } else {
         alert('请输入搜索关键词');
     }
 }
-window.searchGroups = searchGroups;
 
 // 根据关键词过滤小组申请
 async function filterGroups(searchTerm) {
+    if (!supabaseLoaded) {
+        alert('搜索功能暂时不可用，请稍后再试');
+        return;
+    }
+    
     const browseGroups = document.getElementById('browse-groups');
     const searchSection = browseGroups.querySelector('.search-section');
     
@@ -298,6 +418,7 @@ async function filterGroups(searchTerm) {
         
         if (error) {
             console.error('Error searching groups:', error);
+            alert('搜索失败，请重试');
             return;
         }
         
@@ -331,6 +452,19 @@ async function filterGroups(searchTerm) {
         }
     } catch (error) {
         console.error('Error searching groups:', error);
+        alert('搜索失败，请重试');
     }
 }
+
+// 暴露函数到全局作用域
+window.searchResources = searchResources;
+window.searchByTag = searchByTag;
+window.filterPosts = filterPosts;
+window.loadShares = loadShares;
+window.toggleOtherOption = toggleOtherOption;
+window.submitShare = submitShare;
+window.showSection = showSection;
+window.submitGroupForm = submitGroupForm;
+window.loadGroups = loadGroups;
+window.searchGroups = searchGroups;
 window.filterGroups = filterGroups;
