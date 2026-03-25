@@ -1,3 +1,9 @@
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.1/+esm';
+import { supabaseUrl, supabaseKey } from './supabaseConfig.js';
+
+// 初始化 Supabase
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 // 全局变量，用于存储函数
 window.loadShares = null;
 window.searchResources = null;
@@ -11,148 +17,27 @@ window.loadGroups = null;
 window.searchGroups = null;
 window.filterGroups = null;
 
-// 尝试加载 Supabase SDK
-let supabase = null;
-let supabaseLoaded = false;
-let supabaseConfigured = false;
-
-// 初始化函数
-async function initializeApp() {
-    try {
-        // 尝试从 CDN 加载 Supabase SDK
-        const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.1/+esm');
-        const { supabaseUrl, supabaseKey } = await import('./supabaseConfig.js');
-        
-        // 检查配置是否有效
-        if (supabaseUrl && supabaseKey) {
-            // 初始化 Supabase
-            supabase = createClient(supabaseUrl, supabaseKey);
-            supabaseLoaded = true;
-            supabaseConfigured = true;
-            console.log('Supabase SDK 加载成功');
-            
-            // 测试连接
-            try {
-                await supabase.from('shares').select('*').limit(1);
-                console.log('Supabase 连接成功');
-            } catch (error) {
-                console.error('Supabase 连接失败:', error);
-                supabaseLoaded = false;
-                // 提供基本功能，即使 Supabase 连接失败
-                initializeBasicFunctions();
-            }
-        } else {
-            console.error('Supabase 配置无效');
-            supabaseLoaded = false;
-            // 提供基本功能，即使 Supabase 配置无效
-            initializeBasicFunctions();
-        }
-    } catch (error) {
-        console.error('Supabase SDK 加载失败:', error);
-        supabaseLoaded = false;
-        // 提供基本功能，即使 Supabase 加载失败
-        initializeBasicFunctions();
-    }
-}
-
-// 初始化基本功能
-function initializeBasicFunctions() {
-    // 基本的 showSection 函数
-    window.showSection = function(sectionId) {
-        try {
-            // 隐藏所有部分
-            const fillForm = document.getElementById('fill-form');
-            const browseGroups = document.getElementById('browse-groups');
-            if (fillForm) fillForm.style.display = 'none';
-            if (browseGroups) browseGroups.style.display = 'none';
-            
-            // 显示选中的部分
-            const section = document.getElementById(sectionId);
-            if (section) section.style.display = 'block';
-        } catch (error) {
-            console.error('showSection 函数执行失败:', error);
-        }
-    };
-    
-    // 基本的 toggleOtherOption 函数
-    window.toggleOtherOption = function() {
-        try {
-            const shareType = document.getElementById('share-type');
-            const otherTypeContainer = document.getElementById('other-type-container');
-            if (shareType && otherTypeContainer) {
-                if (shareType.value === '其他') {
-                    otherTypeContainer.style.display = 'block';
-                } else {
-                    otherTypeContainer.style.display = 'none';
-                }
-            }
-        } catch (error) {
-            console.error('toggleOtherOption 函数执行失败:', error);
-        }
-    };
-    
-    // 基本的搜索函数
-    window.searchResources = function() {
-        alert('搜索功能暂时不可用，请稍后再试');
-    };
-    
-    window.searchGroups = function() {
-        alert('搜索功能暂时不可用，请稍后再试');
-    };
-    
-    // 基本的提交函数
-    window.submitShare = function(event) {
-        event.preventDefault();
-        alert('提交功能暂时不可用，请稍后再试');
-    };
-    
-    window.submitGroupForm = function(event) {
-        event.preventDefault();
-        alert('提交功能暂时不可用，请稍后再试');
-    };
-    
-    // 基本的加载函数
-    window.loadShares = function() {
-        console.log('加载分享内容...');
-    };
-    
-    window.loadGroups = function() {
-        console.log('加载小组申请...');
-    };
-}
-
-// 立即初始化应用
-initializeApp();
-
 // 学习资源查询页面功能
-async function searchResources() {
-    if (!supabaseLoaded) {
-        alert('搜索功能暂时不可用，请稍后再试');
-        return;
-    }
-    
+function searchResources() {
     const searchInput = document.getElementById('search-input');
     const searchTerm = searchInput.value.trim();
     if (searchTerm) {
-        await filterPosts(searchTerm);
+        filterPosts(searchTerm);
     } else {
         alert('请输入搜索关键词');
     }
 }
+window.searchResources = searchResources;
 
-async function searchByTag(tag) {
+function searchByTag(tag) {
     const searchInput = document.getElementById('search-input');
     searchInput.value = tag;
-    await searchResources();
+    searchResources();
 }
+window.searchByTag = searchByTag;
 
 // 根据关键词过滤帖子
 async function filterPosts(searchTerm) {
-    if (!supabaseLoaded) {
-        alert('搜索功能暂时不可用，请稍后再试');
-        return;
-    }
-    
     const searchResults = document.getElementById('search-results');
     try {
         // 从 Supabase 获取所有分享
@@ -163,7 +48,6 @@ async function filterPosts(searchTerm) {
         
         if (error) {
             console.error('Error searching shares:', error);
-            alert('搜索失败，请重试');
             return;
         }
         
@@ -198,51 +82,12 @@ async function filterPosts(searchTerm) {
         }
     } catch (error) {
         console.error('Error searching shares:', error);
-        alert('搜索失败，请重试');
     }
 }
+window.filterPosts = filterPosts;
 
 // 加载分享内容
 async function loadShares() {
-    if (!supabaseLoaded) {
-        console.log('Supabase 未加载，无法加载分享内容');
-        // 显示示例数据，以便页面看起来更完整
-        const searchResults = document.getElementById('search-results');
-        if (searchResults) {
-            // 清空现有内容
-            const existingPosts = searchResults.querySelectorAll('.post');
-            existingPosts.forEach(post => post.remove());
-            
-            // 添加示例帖子
-            const samplePosts = [
-                {
-                    title: '密码学学习心得',
-                    courseName: '密码学',
-                    shareType: '学习方法总结',
-                    content: '密码学是网络安全的基础，学习时要注重理解原理，多做实践练习。推荐使用在线工具进行加密解密实验，加深对算法的理解。'
-                },
-                {
-                    title: '网络安全防护措施',
-                    courseName: '网络安全',
-                    shareType: '学习内容概述',
-                    content: '网络安全防护包括防火墙配置、入侵检测、漏洞扫描等多个方面。学习时要关注最新的安全威胁和防护技术。'
-                }
-            ];
-            
-            samplePosts.forEach(share => {
-                const post = document.createElement('div');
-                post.className = 'post';
-                post.innerHTML = `
-                    <h3>${share.title}</h3>
-                    <div class="course-info">${share.courseName} ${share.shareType}</div>
-                    <div class="content">${share.content}</div>
-                `;
-                searchResults.appendChild(post);
-            });
-        }
-        return;
-    }
-    
     const searchResults = document.getElementById('search-results');
     try {
         // 从 Supabase 获取分享
@@ -253,39 +98,6 @@ async function loadShares() {
         
         if (error) {
             console.error('Error loading shares:', error);
-            // 显示示例数据，以便页面看起来更完整
-            if (searchResults) {
-                // 清空现有内容
-                const existingPosts = searchResults.querySelectorAll('.post');
-                existingPosts.forEach(post => post.remove());
-                
-                // 添加示例帖子
-                const samplePosts = [
-                    {
-                        title: '密码学学习心得',
-                        courseName: '密码学',
-                        shareType: '学习方法总结',
-                        content: '密码学是网络安全的基础，学习时要注重理解原理，多做实践练习。推荐使用在线工具进行加密解密实验，加深对算法的理解。'
-                    },
-                    {
-                        title: '网络安全防护措施',
-                        courseName: '网络安全',
-                        shareType: '学习内容概述',
-                        content: '网络安全防护包括防火墙配置、入侵检测、漏洞扫描等多个方面。学习时要关注最新的安全威胁和防护技术。'
-                    }
-                ];
-                
-                samplePosts.forEach(share => {
-                    const post = document.createElement('div');
-                    post.className = 'post';
-                    post.innerHTML = `
-                        <h3>${share.title}</h3>
-                        <div class="course-info">${share.courseName} ${share.shareType}</div>
-                        <div class="content">${share.content}</div>
-                    `;
-                    searchResults.appendChild(post);
-                });
-            }
             return;
         }
         
@@ -294,83 +106,21 @@ async function loadShares() {
         existingPosts.forEach(post => post.remove());
         
         // 为每个分享创建帖子元素
-        if (data && data.length > 0) {
-            data.forEach(share => {
-                const post = document.createElement('div');
-                post.className = 'post';
-                post.innerHTML = `
-                    <h3>${share.title}</h3>
-                    <div class="course-info">${share.courseName} ${share.shareType}</div>
-                    <div class="content">${share.content}</div>
-                `;
-                searchResults.appendChild(post);
-            });
-        } else {
-            // 显示示例数据，以便页面看起来更完整
-            const samplePosts = [
-                {
-                    title: '密码学学习心得',
-                    courseName: '密码学',
-                    shareType: '学习方法总结',
-                    content: '密码学是网络安全的基础，学习时要注重理解原理，多做实践练习。推荐使用在线工具进行加密解密实验，加深对算法的理解。'
-                },
-                {
-                    title: '网络安全防护措施',
-                    courseName: '网络安全',
-                    shareType: '学习内容概述',
-                    content: '网络安全防护包括防火墙配置、入侵检测、漏洞扫描等多个方面。学习时要关注最新的安全威胁和防护技术。'
-                }
-            ];
-            
-            samplePosts.forEach(share => {
-                const post = document.createElement('div');
-                post.className = 'post';
-                post.innerHTML = `
-                    <h3>${share.title}</h3>
-                    <div class="course-info">${share.courseName} ${share.shareType}</div>
-                    <div class="content">${share.content}</div>
-                `;
-                searchResults.appendChild(post);
-            });
-        }
+        data.forEach(share => {
+            const post = document.createElement('div');
+            post.className = 'post';
+            post.innerHTML = `
+                <h3>${share.title}</h3>
+                <div class="course-info">${share.courseName} ${share.shareType}</div>
+                <div class="content">${share.content}</div>
+            `;
+            searchResults.appendChild(post);
+        });
     } catch (error) {
         console.error('Error loading shares:', error);
-        // 显示示例数据，以便页面看起来更完整
-        const searchResults = document.getElementById('search-results');
-        if (searchResults) {
-            // 清空现有内容
-            const existingPosts = searchResults.querySelectorAll('.post');
-            existingPosts.forEach(post => post.remove());
-            
-            // 添加示例帖子
-            const samplePosts = [
-                {
-                    title: '密码学学习心得',
-                    courseName: '密码学',
-                    shareType: '学习方法总结',
-                    content: '密码学是网络安全的基础，学习时要注重理解原理，多做实践练习。推荐使用在线工具进行加密解密实验，加深对算法的理解。'
-                },
-                {
-                    title: '网络安全防护措施',
-                    courseName: '网络安全',
-                    shareType: '学习内容概述',
-                    content: '网络安全防护包括防火墙配置、入侵检测、漏洞扫描等多个方面。学习时要关注最新的安全威胁和防护技术。'
-                }
-            ];
-            
-            samplePosts.forEach(share => {
-                const post = document.createElement('div');
-                post.className = 'post';
-                post.innerHTML = `
-                    <h3>${share.title}</h3>
-                    <div class="course-info">${share.courseName} ${share.shareType}</div>
-                    <div class="content">${share.content}</div>
-                `;
-                searchResults.appendChild(post);
-            });
-        }
     }
 }
+window.loadShares = loadShares;
 
 // 资源分享页面功能
 function toggleOtherOption() {
@@ -382,15 +132,10 @@ function toggleOtherOption() {
         otherTypeContainer.style.display = 'none';
     }
 }
+window.toggleOtherOption = toggleOtherOption;
 
 async function submitShare(event) {
     event.preventDefault();
-    
-    if (!supabaseLoaded) {
-        alert('提交功能暂时不可用，请稍后再试');
-        return;
-    }
-    
     const courseName = document.getElementById('course-name').value;
     const shareType = document.getElementById('share-type').value;
     let finalShareType = shareType;
@@ -426,6 +171,7 @@ async function submitShare(event) {
         alert('请填写完整的分享信息');
     }
 }
+window.submitShare = submitShare;
 
 // 互助小组页面功能
 function showSection(sectionId) {
@@ -436,15 +182,10 @@ function showSection(sectionId) {
     // 显示选中的部分
     document.getElementById(sectionId).style.display = 'block';
 }
+window.showSection = showSection;
 
 async function submitGroupForm(event) {
     event.preventDefault();
-    
-    if (!supabaseLoaded) {
-        alert('提交功能暂时不可用，请稍后再试');
-        return;
-    }
-    
     const name = document.getElementById('name').value;
     const introduction = document.getElementById('introduction').value;
     const needs = document.getElementById('needs').value;
@@ -469,65 +210,26 @@ async function submitGroupForm(event) {
             // 显示浏览页面
             showSection('browse-groups');
             // 重新加载小组列表
-            await loadGroups();
+            loadGroups();
         }
     } else {
         alert('请填写完整的表单信息');
     }
 }
+window.submitGroupForm = submitGroupForm;
 
 // 加载小组申请
 async function loadGroups() {
     const browseGroups = document.getElementById('browse-groups');
-    const searchSection = browseGroups ? browseGroups.querySelector('.search-section') : null;
+    const searchSection = browseGroups.querySelector('.search-section');
     
     // 移除所有帖子元素（保留标题和搜索栏）
-    if (browseGroups) {
-        const children = Array.from(browseGroups.children);
-        children.forEach(child => {
-            if (child.tagName !== 'H2' && child !== searchSection) {
-                browseGroups.removeChild(child);
-            }
-        });
-    }
-    
-    if (!supabaseLoaded) {
-        console.log('Supabase 未加载，无法加载小组申请');
-        // 显示示例数据，以便页面看起来更完整
-        if (browseGroups) {
-            // 添加示例小组申请
-            const sampleGroups = [
-                {
-                    name: '张三',
-                    contact: 'zhangsan@example.com',
-                    introduction: '网络安全专业大三学生，对密码学和网络防护有浓厚兴趣',
-                    needs: '希望找到一起学习网络安全的同学，共同准备专业考试'
-                },
-                {
-                    name: '李四',
-                    contact: 'lisi@example.com',
-                    introduction: '信息安全专业学生，擅长编程和渗透测试',
-                    needs: '寻找对网络安全感兴趣的同学，组建学习小组'
-                }
-            ];
-            
-            sampleGroups.forEach(group => {
-                const post = document.createElement('div');
-                post.className = 'post';
-                post.innerHTML = `
-                    <h3>${group.name} - 互助小组申请</h3>
-                    <div class="meta">联系方式：${group.contact}</div>
-                    <div class="content">
-                        <strong>简介：</strong>${group.introduction}<br>
-                        <strong>需求：</strong>${group.needs}
-                    </div>
-                `;
-                // 添加到搜索栏下方
-                browseGroups.appendChild(post);
-            });
+    const children = Array.from(browseGroups.children);
+    children.forEach(child => {
+        if (child.tagName !== 'H2' && child !== searchSection) {
+            browseGroups.removeChild(child);
         }
-        return;
-    }
+    });
     
     try {
         // 从 Supabase 获取小组申请
@@ -538,154 +240,44 @@ async function loadGroups() {
         
         if (error) {
             console.error('Error loading groups:', error);
-            // 显示示例数据，以便页面看起来更完整
-            if (browseGroups) {
-                // 添加示例小组申请
-                const sampleGroups = [
-                    {
-                        name: '张三',
-                        contact: 'zhangsan@example.com',
-                        introduction: '网络安全专业大三学生，对密码学和网络防护有浓厚兴趣',
-                        needs: '希望找到一起学习网络安全的同学，共同准备专业考试'
-                    },
-                    {
-                        name: '李四',
-                        contact: 'lisi@example.com',
-                        introduction: '信息安全专业学生，擅长编程和渗透测试',
-                        needs: '寻找对网络安全感兴趣的同学，组建学习小组'
-                    }
-                ];
-                
-                sampleGroups.forEach(group => {
-                    const post = document.createElement('div');
-                    post.className = 'post';
-                    post.innerHTML = `
-                        <h3>${group.name} - 互助小组申请</h3>
-                        <div class="meta">联系方式：${group.contact}</div>
-                        <div class="content">
-                            <strong>简介：</strong>${group.introduction}<br>
-                            <strong>需求：</strong>${group.needs}
-                        </div>
-                    `;
-                    // 添加到搜索栏下方
-                    browseGroups.appendChild(post);
-                });
-            }
             return;
         }
         
         // 为每个小组申请创建帖子元素
-        if (data && data.length > 0) {
-            data.forEach(group => {
-                const post = document.createElement('div');
-                post.className = 'post';
-                post.innerHTML = `
-                    <h3>${group.name} - 互助小组申请</h3>
-                    <div class="meta">联系方式：${group.contact}</div>
-                    <div class="content">
-                        <strong>简介：</strong>${group.introduction}<br>
-                        <strong>需求：</strong>${group.needs}
-                    </div>
-                `;
-                // 添加到搜索栏下方
-                browseGroups.appendChild(post);
-            });
-        } else {
-            // 显示示例数据，以便页面看起来更完整
-            if (browseGroups) {
-                // 添加示例小组申请
-                const sampleGroups = [
-                    {
-                        name: '张三',
-                        contact: 'zhangsan@example.com',
-                        introduction: '网络安全专业大三学生，对密码学和网络防护有浓厚兴趣',
-                        needs: '希望找到一起学习网络安全的同学，共同准备专业考试'
-                    },
-                    {
-                        name: '李四',
-                        contact: 'lisi@example.com',
-                        introduction: '信息安全专业学生，擅长编程和渗透测试',
-                        needs: '寻找对网络安全感兴趣的同学，组建学习小组'
-                    }
-                ];
-                
-                sampleGroups.forEach(group => {
-                    const post = document.createElement('div');
-                    post.className = 'post';
-                    post.innerHTML = `
-                        <h3>${group.name} - 互助小组申请</h3>
-                        <div class="meta">联系方式：${group.contact}</div>
-                        <div class="content">
-                            <strong>简介：</strong>${group.introduction}<br>
-                            <strong>需求：</strong>${group.needs}
-                        </div>
-                    `;
-                    // 添加到搜索栏下方
-                    browseGroups.appendChild(post);
-                });
-            }
-        }
+        data.forEach(group => {
+            const post = document.createElement('div');
+            post.className = 'post';
+            post.innerHTML = `
+                <h3>${group.name} - 互助小组申请</h3>
+                <div class="meta">联系方式：${group.contact}</div>
+                <div class="content">
+                    <strong>简介：</strong>${group.introduction}<br>
+                    <strong>需求：</strong>${group.needs}
+                </div>
+            `;
+            // 添加到搜索栏下方
+            browseGroups.appendChild(post);
+        });
     } catch (error) {
         console.error('Error loading groups:', error);
-        // 显示示例数据，以便页面看起来更完整
-        if (browseGroups) {
-            // 添加示例小组申请
-            const sampleGroups = [
-                {
-                    name: '张三',
-                    contact: 'zhangsan@example.com',
-                    introduction: '网络安全专业大三学生，对密码学和网络防护有浓厚兴趣',
-                    needs: '希望找到一起学习网络安全的同学，共同准备专业考试'
-                },
-                {
-                    name: '李四',
-                    contact: 'lisi@example.com',
-                    introduction: '信息安全专业学生，擅长编程和渗透测试',
-                    needs: '寻找对网络安全感兴趣的同学，组建学习小组'
-                }
-            ];
-            
-            sampleGroups.forEach(group => {
-                const post = document.createElement('div');
-                post.className = 'post';
-                post.innerHTML = `
-                    <h3>${group.name} - 互助小组申请</h3>
-                    <div class="meta">联系方式：${group.contact}</div>
-                    <div class="content">
-                        <strong>简介：</strong>${group.introduction}<br>
-                        <strong>需求：</strong>${group.needs}
-                    </div>
-                `;
-                // 添加到搜索栏下方
-                browseGroups.appendChild(post);
-            });
-        }
     }
 }
+window.loadGroups = loadGroups;
 
 // 互助小组搜索功能
-async function searchGroups() {
-    if (!supabaseLoaded) {
-        alert('搜索功能暂时不可用，请稍后再试');
-        return;
-    }
-    
+function searchGroups() {
     const searchInput = document.getElementById('group-search-input');
     const searchTerm = searchInput.value.trim();
     if (searchTerm) {
-        await filterGroups(searchTerm);
+        filterGroups(searchTerm);
     } else {
         alert('请输入搜索关键词');
     }
 }
+window.searchGroups = searchGroups;
 
 // 根据关键词过滤小组申请
 async function filterGroups(searchTerm) {
-    if (!supabaseLoaded) {
-        alert('搜索功能暂时不可用，请稍后再试');
-        return;
-    }
-    
     const browseGroups = document.getElementById('browse-groups');
     const searchSection = browseGroups.querySelector('.search-section');
     
@@ -706,7 +298,6 @@ async function filterGroups(searchTerm) {
         
         if (error) {
             console.error('Error searching groups:', error);
-            alert('搜索失败，请重试');
             return;
         }
         
@@ -740,19 +331,6 @@ async function filterGroups(searchTerm) {
         }
     } catch (error) {
         console.error('Error searching groups:', error);
-        alert('搜索失败，请重试');
     }
 }
-
-// 暴露函数到全局作用域
-window.searchResources = searchResources;
-window.searchByTag = searchByTag;
-window.filterPosts = filterPosts;
-window.loadShares = loadShares;
-window.toggleOtherOption = toggleOtherOption;
-window.submitShare = submitShare;
-window.showSection = showSection;
-window.submitGroupForm = submitGroupForm;
-window.loadGroups = loadGroups;
-window.searchGroups = searchGroups;
 window.filterGroups = filterGroups;
