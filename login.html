@@ -6,8 +6,6 @@
     <title>登录/注册 - 武大网安学习互助平台</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.1/+esm"></script>
-    <script src="supabaseConfig.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -24,6 +22,214 @@
                 }
             }
         }
+    </script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.1/+esm';
+        import { supabaseUrl, supabaseKey } from './supabaseConfig.js';
+        
+        // 初始化 Supabase
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // 表单切换
+        const loginTab = document.getElementById('login-tab');
+        const registerTab = document.getElementById('register-tab');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('text-primary', 'border-primary');
+            loginTab.classList.remove('text-gray-500');
+            registerTab.classList.remove('text-primary', 'border-primary');
+            registerTab.classList.add('text-gray-500');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+        });
+
+        registerTab.addEventListener('click', () => {
+            registerTab.classList.add('text-primary', 'border-primary');
+            registerTab.classList.remove('text-gray-500');
+            loginTab.classList.remove('text-primary', 'border-primary');
+            loginTab.classList.add('text-gray-500');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        });
+
+        // 允许注册的姓名列表（从 Supabase 获取）
+        let allowedNames = [];
+
+        // 从 Supabase 获取允许注册的姓名列表
+        async function fetchAllowedNames() {
+            try {
+                const { data, error } = await supabase
+                    .from('allowed_names')
+                    .select('name');
+                
+                if (error) {
+                    console.error('Error fetching allowed names:', error);
+                    // 使用默认名单作为 fallback
+                    allowedNames = [
+                        '张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十',
+                        '郑一', '王二', '陈三', '刘四', '林五', '黄六', '杨七', '马八'
+                    ];
+                } else {
+                    allowedNames = data.map(item => item.name);
+                }
+            } catch (error) {
+                console.error('Error fetching allowed names:', error);
+                // 使用默认名单作为 fallback
+                allowedNames = [
+                    '张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十',
+                    '郑一', '王二', '陈三', '刘四', '林五', '黄六', '杨七', '马八'
+                ];
+            }
+        }
+
+        // 模拟用户数据库
+        function getUsers() {
+            // 检查是否已有用户数据
+            let users = localStorage.getItem('users');
+            if (users) {
+                return JSON.parse(users);
+            }
+            
+            // 预设测试账号
+            const defaultUsers = [
+                {
+                    name: '测试用户',
+                    email: 'test@example.com',
+                    studentId: '2020000000',
+                    password: 'test123'
+                }
+            ];
+            
+            // 保存预设用户到本地存储
+            localStorage.setItem('users', JSON.stringify(defaultUsers));
+            return defaultUsers;
+        }
+
+        function saveUser(user) {
+            const users = getUsers();
+            users.push(user);
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
+        function findUser(email) {
+            const users = getUsers();
+            return users.find(user => user.email === email);
+        }
+
+        // 页面加载时自动填充记住的用户凭据
+        window.addEventListener('load', async function() {
+            await fetchAllowedNames();
+        });
+
+        // 显示错误提示
+        function showError(element, message) {
+            const errorElement = document.createElement('p');
+            errorElement.className = 'text-red-500 text-sm mt-1';
+            errorElement.textContent = message;
+            errorElement.id = 'error-message';
+            
+            // 移除已存在的错误提示
+            const existingError = element.parentElement.querySelector('#error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            element.parentElement.appendChild(errorElement);
+        }
+
+        // 移除错误提示
+        function removeError(element) {
+            const errorElement = element.parentElement.querySelector('#error-message');
+            if (errorElement) {
+                errorElement.remove();
+            }
+        }
+
+        // 登录按钮点击事件
+        document.getElementById('quick-login-btn').addEventListener('click', async () => {
+            // 获取本地存储中的用户
+            const users = getUsers();
+            if (users.length > 0) {
+                // 使用第一个用户自动登录
+                const user = users[0];
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('currentUser', user.name);
+                
+                // 存储用户令牌（如果使用 Supabase 认证）
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    localStorage.setItem('authToken', session.access_token);
+                }
+                
+                window.location.href = 'main.html';
+            } else {
+                alert('请先注册');
+                // 切换到注册表单
+                registerTab.click();
+            }
+        });
+
+        // 注册按钮点击事件
+        document.querySelector('#register-form button').addEventListener('click', async () => {
+            // 确保已获取允许注册的姓名列表
+            if (allowedNames.length === 0) {
+                await fetchAllowedNames();
+            }
+            
+            const nameInput = document.getElementById('register-name');
+            const name = nameInput.value.trim();
+
+            // 表单验证
+            if (!name) {
+                showError(nameInput, '请输入姓名');
+                return;
+            }
+            // 验证姓名是否在允许列表中
+            if (!allowedNames.includes(name)) {
+                showError(nameInput, '您的姓名不在允许注册的列表中');
+                return;
+            }
+
+            // 检查用户是否已存在
+            const existingUser = getUsers().find(user => user.name === name);
+            if (existingUser) {
+                showError(nameInput, '该姓名已注册，请直接登录');
+                return;
+            }
+
+            // 自动生成邮箱和密码
+            const email = `${name}@example.com`;
+            const password = '123456';
+
+            // 注册成功
+            const newUser = {
+                name: name,
+                email: email,
+                studentId: '2020000000',
+                password: password
+            };
+            saveUser(newUser);
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('currentUser', name);
+            
+            // 存储用户令牌（如果使用 Supabase 认证）
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                localStorage.setItem('authToken', session.access_token);
+            }
+            
+            window.location.href = 'main.html';
+        });
+
+        // 输入框焦点事件，移除错误提示
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                removeError(input);
+            });
+        });
     </script>
     <style type="text/tailwindcss">
         @layer utilities {
@@ -116,25 +322,7 @@
                     </button>
                 </div>
 
-                <!-- 其他登录方式 -->
-                <div class="mt-8">
-                    <div class="flex items-center justify-center mb-6">
-                        <div class="flex-grow h-px bg-gray-200"></div>
-                        <span class="mx-4 text-gray-500">其他登录方式</span>
-                        <div class="flex-grow h-px bg-gray-200"></div>
-                    </div>
-                    <div class="flex justify-center space-x-6">
-                        <button class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center hover:bg-blue-200 transition-all-300">
-                            <i class="fa fa-weixin text-green-600 text-xl"></i>
-                        </button>
-                        <button class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center hover:bg-blue-200 transition-all-300">
-                            <i class="fa fa-qq text-blue-500 text-xl"></i>
-                        </button>
-                        <button class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center hover:bg-blue-200 transition-all-300">
-                            <i class="fa fa-weibo text-red-500 text-xl"></i>
-                        </button>
-                    </div>
-                </div>
+
             </div>
         </div>
     </div>
