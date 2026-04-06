@@ -9,7 +9,8 @@ function updateSupabaseAuth() {
     const authToken = localStorage.getItem('authToken');
     if (authToken) {
         // 只在令牌变化时更新客户端
-        if (!supabase._options.global.headers || supabase._options.global.headers.Authorization !== `Bearer ${authToken}`) {
+        const hasGlobalHeaders = supabase._options && supabase._options.global && supabase._options.global.headers;
+        if (!hasGlobalHeaders || supabase._options.global.headers.Authorization !== `Bearer ${authToken}`) {
             supabase = createClient(supabaseUrl, supabaseKey, {
                 global: {
                     headers: {
@@ -20,7 +21,8 @@ function updateSupabaseAuth() {
         }
     } else {
         // 如果没有认证令牌，使用默认客户端
-        if (supabase._options.global.headers) {
+        const hasGlobalHeaders = supabase._options && supabase._options.global && supabase._options.global.headers;
+        if (hasGlobalHeaders) {
             supabase = createClient(supabaseUrl, supabaseKey);
         }
     }
