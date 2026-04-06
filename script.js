@@ -2,7 +2,32 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 import { supabaseUrl, supabaseKey } from './supabaseConfig.js';
 
 // 初始化 Supabase
-const supabase = createClient(supabaseUrl, supabaseKey);
+let supabase = createClient(supabaseUrl, supabaseKey);
+
+// 更新 Supabase 客户端的认证状态
+function updateSupabaseAuth() {
+    const authToken = localStorage.getItem('authToken');
+    if (authToken) {
+        supabase = createClient(supabaseUrl, supabaseKey, {
+            global: {
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                }
+            }
+        });
+    }
+}
+
+// 页面加载时更新认证状态
+window.onload = function() {
+    updateSupabaseAuth();
+    testSupabaseConnection().then((connected) => {
+        if (!connected) {
+            console.warn('Supabase 连接失败，将使用本地存储模式');
+            useLocalStorage = true;
+        }
+    });
+};
 
 // 测试 Supabase 连接
 async function testSupabaseConnection() {
@@ -254,11 +279,13 @@ async function submitShare(event) {
         }
         
         // 上传文件到 Supabase Storage
-        if (!useLocalStorage) {
-            const { data, error } = await supabase
-                .storage
-                .from('share-files')
-                .upload(`${Date.now()}-${file.name}`, file);
+            if (!useLocalStorage) {
+                // 处理文件名，移除中文字符和特殊字符
+                const safeFileName = `${Date.now()}-${file.name.replace(/[\u4e00-\u9fa5]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+                const { data, error } = await supabase
+                    .storage
+                    .from('share-files')
+                    .upload(safeFileName, file);
             
             if (error) {
                 console.error('Error uploading file:', error);
