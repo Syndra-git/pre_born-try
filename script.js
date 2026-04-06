@@ -28,16 +28,8 @@ function updateSupabaseAuth() {
     }
 }
 
-// 页面加载时更新认证状态
-window.onload = function() {
-    updateSupabaseAuth();
-    testSupabaseConnection().then((connected) => {
-        if (!connected) {
-            console.warn('Supabase 连接失败，将使用本地存储模式');
-            useLocalStorage = true;
-        }
-    });
-};
+// 检查是否使用本地存储模式
+let useLocalStorage = false;
 
 // 测试 Supabase 连接
 async function testSupabaseConnection() {
@@ -59,11 +51,9 @@ async function testSupabaseConnection() {
     }
 }
 
-// 检查是否使用本地存储模式
-let useLocalStorage = false;
-
-// 页面加载时测试连接
+// 页面加载时更新认证状态并测试连接
 window.onload = function() {
+    updateSupabaseAuth();
     testSupabaseConnection().then((connected) => {
         if (!connected) {
             console.warn('Supabase 连接失败，将使用本地存储模式');
@@ -304,25 +294,27 @@ async function submitShare(event) {
                 if (error) {
                     console.error('Error uploading file:', error);
                     if (error.statusCode === 401 || error.error === 'Unauthorized') {
-                        alert('登录已过期，请重新登录');
-                        window.location.href = 'login.html';
+                        // 即使Supabase认证失败，也允许使用本地存储模式
+                        console.warn('Supabase 认证失败，切换到本地存储模式');
+                        useLocalStorage = true;
                     } else {
                         alert('文件上传失败，请重试');
+                        return;
                     }
-                    return;
+                } else {
+                    // 生成签名 URL（有效期 7 天）
+                    const { data: urlData } = await supabase
+                        .storage
+                        .from('share-files')
+                        .createSignedUrl(data.path, 60 * 60 * 24 * 7); // 7 天有效期
+                    
+                    fileUrl = urlData.signedUrl;
                 }
-                
-                // 生成签名 URL（有效期 7 天）
-                const { data: urlData } = await supabase
-                    .storage
-                    .from('share-files')
-                    .createSignedUrl(data.path, 60 * 60 * 24 * 7); // 7 天有效期
-                
-                fileUrl = urlData.signedUrl;
             } catch (error) {
                 console.error('Error uploading file:', error);
-                alert('文件上传失败，请重试');
-                return;
+                // 即使Supabase上传失败，也允许使用本地存储模式
+                console.warn('Supabase 上传失败，切换到本地存储模式');
+                useLocalStorage = true;
             }
         }
         
@@ -369,8 +361,24 @@ async function submitShare(event) {
                 if (error) {
                     console.error('Error inserting share:', error);
                     if (error.code === '42501' || error.status === 401) {
-                        alert('登录已过期，请重新登录');
-                        window.location.href = 'login.html';
+                        // 即使Supabase认证失败，也允许使用本地存储模式
+                        console.warn('Supabase 认证失败，切换到本地存储模式');
+                        useLocalStorage = true;
+                        // 使用本地存储
+                        const shares = JSON.parse(localStorage.getItem('shares') || '[]');
+                        shares.unshift({
+                            id: Date.now().toString(),
+                            title: shareTitle,
+                            courseName: courseName,
+                            shareType: finalShareType,
+                            content: content,
+                            fileInfo: fileInfo,
+                            created_at: new Date().toISOString()
+                        });
+                        localStorage.setItem('shares', JSON.stringify(shares));
+                        alert('分享提交成功！');
+                        // 跳转到学习资源查询页面
+                        window.location.href = 'resources.html';
                     } else {
                         alert('提交失败，请重试');
                     }
@@ -452,8 +460,25 @@ async function submitGroupForm(event) {
                 if (error) {
                     console.error('Error inserting group:', error);
                     if (error.code === '42501' || error.status === 401) {
-                        alert('登录已过期，请重新登录');
-                        window.location.href = 'login.html';
+                        // 即使Supabase认证失败，也允许使用本地存储模式
+                        console.warn('Supabase 认证失败，切换到本地存储模式');
+                        useLocalStorage = true;
+                        // 使用本地存储
+                        const groups = JSON.parse(localStorage.getItem('groups') || '[]');
+                        groups.unshift({
+                            id: Date.now().toString(),
+                            name: name,
+                            introduction: introduction,
+                            needs: needs,
+                            contact: contact,
+                            created_at: new Date().toISOString()
+                        });
+                        localStorage.setItem('groups', JSON.stringify(groups));
+                        alert('表单提交成功！');
+                        // 显示浏览页面
+                        showSection('browse-groups');
+                        // 重新加载小组列表
+                        loadGroups();
                     } else {
                         alert('提交失败，请重试');
                     }
