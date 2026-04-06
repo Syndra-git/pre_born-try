@@ -8,16 +8,21 @@ let supabase = createClient(supabaseUrl, supabaseKey);
 function updateSupabaseAuth() {
     const authToken = localStorage.getItem('authToken');
     if (authToken) {
-        supabase = createClient(supabaseUrl, supabaseKey, {
-            global: {
-                headers: {
-                    Authorization: `Bearer ${authToken}`
+        // 只在令牌变化时更新客户端
+        if (!supabase._options.global.headers || supabase._options.global.headers.Authorization !== `Bearer ${authToken}`) {
+            supabase = createClient(supabaseUrl, supabaseKey, {
+                global: {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
+                    }
                 }
-            }
-        });
+            });
+        }
     } else {
         // 如果没有认证令牌，使用默认客户端
-        supabase = createClient(supabaseUrl, supabaseKey);
+        if (supabase._options.global.headers) {
+            supabase = createClient(supabaseUrl, supabaseKey);
+        }
     }
 }
 

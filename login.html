@@ -28,7 +28,7 @@
         import { supabaseUrl, supabaseKey } from './supabaseConfig.js';
         
         // 初始化 Supabase
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        let supabase = createClient(supabaseUrl, supabaseKey);
 
         // 表单切换
         const loginTab = document.getElementById('login-tab');
@@ -157,23 +157,26 @@
             if (registeredUsers.length > 0) {
                 // 使用第一个已注册用户自动登录
                 const user = registeredUsers[0];
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('currentUser', user.name);
                 
-                // 模拟登录到 Supabase
+                // 尝试登录到 Supabase
                 try {
                     const { data, error } = await supabase.auth.signInWithPassword({
                         email: user.email,
                         password: user.password
                     });
                     if (data.user) {
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('currentUser', user.name);
                         localStorage.setItem('authToken', data.session.access_token);
+                        window.location.href = 'main.html';
+                    } else {
+                        console.error('Error signing in:', error);
+                        alert('登录失败，请重试');
                     }
                 } catch (error) {
                     console.error('Error signing in:', error);
+                    alert('登录失败，请重试');
                 }
-                
-                window.location.href = 'main.html';
             } else {
                 alert('请先注册');
                 // 切换到注册表单
@@ -214,49 +217,32 @@
             const password = '123456';
 
             // 尝试在 Supabase 中注册
-            let authToken = null;
             try {
                 const { data, error } = await supabase.auth.signUp({
                     email: email,
                     password: password
                 });
                 if (data.user) {
-                    authToken = data.session.access_token;
-                    localStorage.setItem('authToken', authToken);
+                    // 注册成功
+                    const newUser = {
+                        name: name,
+                        email: email,
+                        studentId: '2020000000',
+                        password: password
+                    };
+                    saveUser(newUser);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('currentUser', name);
+                    localStorage.setItem('authToken', data.session.access_token);
+                    window.location.href = 'main.html';
+                } else {
+                    console.error('Error signing up:', error);
+                    alert('注册失败，请重试');
                 }
             } catch (error) {
                 console.error('Error signing up:', error);
+                alert('注册失败，请重试');
             }
-
-            // 注册成功
-            const newUser = {
-                name: name,
-                email: email,
-                studentId: '2020000000',
-                password: password
-            };
-            saveUser(newUser);
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('currentUser', name);
-            
-            // 确保认证令牌已存储
-            if (!authToken) {
-                // 尝试登录获取令牌
-                try {
-                    const { data, error } = await supabase.auth.signInWithPassword({
-                        email: email,
-                        password: password
-                    });
-                    if (data.user) {
-                        authToken = data.session.access_token;
-                        localStorage.setItem('authToken', authToken);
-                    }
-                } catch (error) {
-                    console.error('Error signing in after registration:', error);
-                }
-            }
-            
-            window.location.href = 'main.html';
         });
 
         // 输入框焦点事件，移除错误提示
