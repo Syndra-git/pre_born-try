@@ -151,9 +151,12 @@
         document.getElementById('quick-login-btn').addEventListener('click', async () => {
             // 获取本地存储中的用户
             const users = getUsers();
-            if (users.length > 0) {
-                // 使用第一个用户自动登录
-                const user = users[0];
+            // 检查是否有已注册的用户
+            const registeredUsers = users.filter(user => user.name !== '测试用户');
+            
+            if (registeredUsers.length > 0) {
+                // 使用第一个已注册用户自动登录
+                const user = registeredUsers[0];
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('currentUser', user.name);
                 
@@ -211,13 +214,15 @@
             const password = '123456';
 
             // 尝试在 Supabase 中注册
+            let authToken = null;
             try {
                 const { data, error } = await supabase.auth.signUp({
                     email: email,
                     password: password
                 });
                 if (data.user) {
-                    localStorage.setItem('authToken', data.session.access_token);
+                    authToken = data.session.access_token;
+                    localStorage.setItem('authToken', authToken);
                 }
             } catch (error) {
                 console.error('Error signing up:', error);
@@ -233,6 +238,23 @@
             saveUser(newUser);
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('currentUser', name);
+            
+            // 确保认证令牌已存储
+            if (!authToken) {
+                // 尝试登录获取令牌
+                try {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+                    if (data.user) {
+                        authToken = data.session.access_token;
+                        localStorage.setItem('authToken', authToken);
+                    }
+                } catch (error) {
+                    console.error('Error signing in after registration:', error);
+                }
+            }
             
             window.location.href = 'main.html';
         });

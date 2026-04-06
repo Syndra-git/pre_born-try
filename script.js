@@ -15,6 +15,9 @@ function updateSupabaseAuth() {
                 }
             }
         });
+    } else {
+        // 如果没有认证令牌，使用默认客户端
+        supabase = createClient(supabaseUrl, supabaseKey);
     }
 }
 
@@ -234,6 +237,9 @@ async function submitShare(event) {
         return;
     }
     
+    // 更新认证状态
+    updateSupabaseAuth();
+    
     const courseName = document.getElementById('course-name').value;
     const shareType = document.getElementById('share-type').value;
     let finalShareType = shareType;
@@ -279,27 +285,38 @@ async function submitShare(event) {
         }
         
         // 上传文件到 Supabase Storage
-            if (!useLocalStorage) {
+        if (!useLocalStorage) {
+            try {
                 // 处理文件名，移除中文字符和特殊字符
                 const safeFileName = `${Date.now()}-${file.name.replace(/[\u4e00-\u9fa5]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
                 const { data, error } = await supabase
                     .storage
                     .from('share-files')
                     .upload(safeFileName, file);
-            
-            if (error) {
+                
+                if (error) {
+                    console.error('Error uploading file:', error);
+                    if (error.statusCode === 401 || error.error === 'Unauthorized') {
+                        alert('登录已过期，请重新登录');
+                        window.location.href = 'login.html';
+                    } else {
+                        alert('文件上传失败，请重试');
+                    }
+                    return;
+                }
+                
+                // 生成签名 URL（有效期 7 天）
+                const { data: urlData } = await supabase
+                    .storage
+                    .from('share-files')
+                    .createSignedUrl(data.path, 60 * 60 * 24 * 7); // 7 天有效期
+                
+                fileUrl = urlData.signedUrl;
+            } catch (error) {
                 console.error('Error uploading file:', error);
                 alert('文件上传失败，请重试');
                 return;
             }
-            
-            // 生成签名 URL（有效期 7 天）
-            const { data: urlData } = await supabase
-                .storage
-                .from('share-files')
-                .createSignedUrl(data.path, 60 * 60 * 24 * 7); // 7 天有效期
-            
-            fileUrl = urlData.signedUrl;
         }
         
         fileInfo = {
@@ -344,7 +361,12 @@ async function submitShare(event) {
                 
                 if (error) {
                     console.error('Error inserting share:', error);
-                    alert('提交失败，请重试');
+                    if (error.code === '42501' || error.status === 401) {
+                        alert('登录已过期，请重新登录');
+                        window.location.href = 'login.html';
+                    } else {
+                        alert('提交失败，请重试');
+                    }
                 } else {
                     alert('分享提交成功！');
                     // 跳转到学习资源查询页面
@@ -374,6 +396,17 @@ window.showSection = showSection;
 
 async function submitGroupForm(event) {
     event.preventDefault();
+    // 检查登录状态
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) {
+        alert('请先登录');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // 更新认证状态
+    updateSupabaseAuth();
+    
     const name = document.getElementById('name').value;
     const introduction = document.getElementById('introduction').value;
     const needs = document.getElementById('needs').value;
@@ -411,7 +444,12 @@ async function submitGroupForm(event) {
                 
                 if (error) {
                     console.error('Error inserting group:', error);
-                    alert('提交失败，请重试');
+                    if (error.code === '42501' || error.status === 401) {
+                        alert('登录已过期，请重新登录');
+                        window.location.href = 'login.html';
+                    } else {
+                        alert('提交失败，请重试');
+                    }
                 } else {
                     alert('表单提交成功！');
                     // 显示浏览页面
