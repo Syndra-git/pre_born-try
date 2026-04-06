@@ -9,12 +9,18 @@
     <script>
         // 页面加载时初始化
         window.onload = function() {
+            // 检查登录状态
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (!isLoggedIn) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
             // 显示浏览页面时加载小组申请
             document.querySelector('a[onclick="showSection(\'browse-groups\')"]').addEventListener('click', function() {
-                // 延迟执行，确保script.js已经加载完成
                 setTimeout(function() {
-                    if (typeof loadGroups === 'function') {
-                        loadGroups();
+                    if (window.loadGroups) {
+                        window.loadGroups();
                     }
                 }, 100);
             });

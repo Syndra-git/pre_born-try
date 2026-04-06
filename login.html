@@ -6,6 +6,8 @@
     <title>登录/注册 - 武大网安学习互助平台</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.1/+esm"></script>
+    <script src="supabaseConfig.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -165,6 +167,9 @@
     </div>
 
     <script>
+        // 初始化 Supabase
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
         // 表单切换
         const loginTab = document.getElementById('login-tab');
         const registerTab = document.getElementById('register-tab');
@@ -188,6 +193,36 @@
             registerForm.classList.remove('hidden');
             loginForm.classList.add('hidden');
         });
+
+        // 允许注册的姓名列表（从 Supabase 获取）
+        let allowedNames = [];
+
+        // 从 Supabase 获取允许注册的姓名列表
+        async function fetchAllowedNames() {
+            try {
+                const { data, error } = await supabase
+                    .from('allowed_names')
+                    .select('name');
+                
+                if (error) {
+                    console.error('Error fetching allowed names:', error);
+                    // 使用默认名单作为 fallback
+                    allowedNames = [
+                        '张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十',
+                        '郑一', '王二', '陈三', '刘四', '林五', '黄六', '杨七', '马八'
+                    ];
+                } else {
+                    allowedNames = data.map(item => item.name);
+                }
+            } catch (error) {
+                console.error('Error fetching allowed names:', error);
+                // 使用默认名单作为 fallback
+                allowedNames = [
+                    '张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十',
+                    '郑一', '王二', '陈三', '刘四', '林五', '黄六', '杨七', '马八'
+                ];
+            }
+        }
 
         // 模拟用户数据库
         function getUsers() {
@@ -224,7 +259,9 @@
         }
 
         // 页面加载时自动填充记住的用户凭据
-        window.addEventListener('load', function() {
+        window.addEventListener('load', async function() {
+            await fetchAllowedNames();
+            
             const rememberedUser = localStorage.getItem('rememberedUser');
             const rememberedPassword = localStorage.getItem('rememberedPassword');
             
@@ -260,7 +297,7 @@
         }
 
         // 登录按钮点击事件
-        document.querySelector('#login-form button').addEventListener('click', () => {
+        document.querySelector('#login-form button').addEventListener('click', async () => {
             const emailInput = document.getElementById('login-email');
             const passwordInput = document.getElementById('login-password');
             const rememberCheckbox = document.getElementById('remember');
@@ -294,6 +331,12 @@
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('currentUser', email);
             
+            // 存储用户令牌（如果使用 Supabase 认证）
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                localStorage.setItem('authToken', session.access_token);
+            }
+            
             // 记住我功能
             if (rememberCheckbox.checked) {
                 localStorage.setItem('rememberedUser', email);
@@ -303,11 +346,16 @@
                 localStorage.removeItem('rememberedPassword');
             }
             
-            window.location.href = 'index.html';
+            window.location.href = 'main.html';
         });
 
         // 注册按钮点击事件
-        document.querySelector('#register-form button').addEventListener('click', () => {
+        document.querySelector('#register-form button').addEventListener('click', async () => {
+            // 确保已获取允许注册的姓名列表
+            if (allowedNames.length === 0) {
+                await fetchAllowedNames();
+            }
+            
             const nameInput = document.getElementById('register-name');
             const emailInput = document.getElementById('register-email');
             const studentIdInput = document.getElementById('register-student-id');
@@ -323,6 +371,11 @@
             // 表单验证
             if (!name) {
                 showError(nameInput, '请输入姓名');
+                return;
+            }
+            // 验证姓名是否在允许列表中
+            if (!allowedNames.includes(name)) {
+                showError(nameInput, '您的姓名不在允许注册的列表中');
                 return;
             }
             if (!email) {
@@ -358,16 +411,30 @@
             saveUser(newUser);
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('currentUser', email);
-            window.location.href = 'index.html';
+            
+            // 存储用户令牌（如果使用 Supabase 认证）
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                localStorage.setItem('authToken', session.access_token);
+            }
+            
+            window.location.href = 'main.html';
         });
 
         // 第三方登录按钮点击事件
         document.querySelectorAll('.fa-weixin, .fa-qq, .fa-weibo').forEach(icon => {
-            icon.parentElement.addEventListener('click', () => {
+            icon.parentElement.addEventListener('click', async () => {
                 // 模拟第三方登录成功
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('currentUser', 'third-party-user');
-                window.location.href = 'index.html';
+                
+                // 存储用户令牌（如果使用 Supabase 认证）
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    localStorage.setItem('authToken', session.access_token);
+                }
+                
+                window.location.href = 'main.html';
             });
         });
 

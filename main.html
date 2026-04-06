@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>武汉大学国家网络安全学院 - 专业学习互助平台</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        // 检查登录状态
+        window.onload = function() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (!isLoggedIn) {
+                window.location.href = 'login.html';
+            }
+        };
+    </script>
 </head>
 <body>
     <div class="container">

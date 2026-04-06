@@ -109,10 +109,17 @@ async function filterPosts(searchTerm) {
                 content.includes(searchTerm.toLowerCase())) {
                 const post = document.createElement('div');
                 post.className = 'post';
+                
+                // 检查是否有文件信息
+                let contentHTML = share.content;
+                if (share.fileInfo && share.fileInfo.url) {
+                    contentHTML = `<a href="${share.fileInfo.url}" target="_blank">下载文件：${share.fileInfo.name}</a>`;
+                }
+                
                 post.innerHTML = `
                     <h3>${share.title}</h3>
                     <div class="course-info">${share.courseName} ${share.shareType}</div>
-                    <div class="content">${share.content}</div>
+                    <div class="content">${contentHTML}</div>
                 `;
                 searchResults.appendChild(post);
                 found = true;
@@ -160,10 +167,17 @@ async function loadShares() {
         data.forEach(share => {
             const post = document.createElement('div');
             post.className = 'post';
+            
+            // 检查是否有文件信息
+            let contentHTML = share.content;
+            if (share.fileInfo && share.fileInfo.url) {
+                contentHTML = `<a href="${share.fileInfo.url}" target="_blank">下载文件：${share.fileInfo.name}</a>`;
+            }
+            
             post.innerHTML = `
                 <h3>${share.title}</h3>
                 <div class="course-info">${share.courseName} ${share.shareType}</div>
-                <div class="content">${share.content}</div>
+                <div class="content">${contentHTML}</div>
             `;
             searchResults.appendChild(post);
         });
@@ -187,6 +201,14 @@ window.toggleOtherOption = toggleOtherOption;
 
 async function submitShare(event) {
     event.preventDefault();
+    // 检查登录状态
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) {
+        alert('请先登录');
+        window.location.href = 'login.html';
+        return;
+    }
+    
     const courseName = document.getElementById('course-name').value;
     const shareType = document.getElementById('share-type').value;
     let finalShareType = shareType;
@@ -197,9 +219,73 @@ async function submitShare(event) {
         }
     }
     const shareTitle = document.getElementById('share-title').value;
-    const shareContent = document.getElementById('share-content').value;
+    const contentType = document.querySelector('input[name="content-type"]:checked').value;
     
-    if (courseName && finalShareType && shareTitle && shareContent) {
+    let content = '';
+    let fileInfo = null;
+    let fileUrl = null;
+    
+    if (contentType === 'text') {
+        content = document.getElementById('share-content').value;
+        if (!content) {
+            alert('请输入文本内容');
+            return;
+        }
+    } else if (contentType === 'file') {
+        const fileInput = document.getElementById('share-file');
+        const file = fileInput.files[0];
+        if (!file) {
+            alert('请选择要上传的文件');
+            return;
+        }
+        
+        // 检查文件类型
+        const allowedTypes = ['.zip', '.pdf', '.doc', '.docx', '.txt'];
+        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+        if (!allowedTypes.includes(fileExtension)) {
+            alert('不支持的文件类型，请上传 zip、pdf、word 或 txt 文件');
+            return;
+        }
+        
+        // 检查文件大小（限制为10MB）
+        if (file.size > 10 * 1024 * 1024) {
+            alert('文件大小超过限制，请上传小于10MB的文件');
+            return;
+        }
+        
+        // 上传文件到 Supabase Storage
+        if (!useLocalStorage) {
+            const { data, error } = await supabase
+                .storage
+                .from('share-files')
+                .upload(`${Date.now()}-${file.name}`, file);
+            
+            if (error) {
+                console.error('Error uploading file:', error);
+                alert('文件上传失败，请重试');
+                return;
+            }
+            
+            // 生成签名 URL（有效期 7 天）
+            const { data: urlData } = await supabase
+                .storage
+                .from('share-files')
+                .createSignedUrl(data.path, 60 * 60 * 24 * 7); // 7 天有效期
+            
+            fileUrl = urlData.signedUrl;
+        }
+        
+        fileInfo = {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            url: fileUrl
+        };
+        
+        content = `[文件] ${file.name}`;
+    }
+    
+    if (courseName && finalShareType && shareTitle) {
         try {
             if (useLocalStorage) {
                 // 使用本地存储
@@ -209,7 +295,8 @@ async function submitShare(event) {
                     title: shareTitle,
                     courseName: courseName,
                     shareType: finalShareType,
-                    content: shareContent,
+                    content: content,
+                    fileInfo: fileInfo,
                     created_at: new Date().toISOString()
                 });
                 localStorage.setItem('shares', JSON.stringify(shares));
@@ -224,7 +311,8 @@ async function submitShare(event) {
                         title: shareTitle,
                         courseName: courseName,
                         shareType: finalShareType,
-                        content: shareContent
+                        content: content,
+                        fileInfo: fileInfo
                     });
                 
                 if (error) {
