@@ -242,7 +242,8 @@ async function submitShare(event) {
     event.preventDefault();
     // 检查登录状态
     const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (!isLoggedIn) {
+    const authToken = localStorage.getItem('authToken');
+    if (!isLoggedIn || !authToken) {
         alert('请先登录');
         window.location.href = 'login.html';
         return;
@@ -297,33 +298,36 @@ async function submitShare(event) {
             }
             
             // 上传文件到 Supabase Storage
-            if (!useLocalStorage) {
-                try {
-                    // 处理文件名，移除中文字符和特殊字符
-                    const safeFileName = `${Date.now()}-${file.name.replace(/[\u4e00-\u9fa5]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-                    const { data, error } = await supabase
-                        .storage
-                        .from('share-files')
-                        .upload(safeFileName, file);
-                    
-                    if (error) {
-                        console.error('Error uploading file:', error);
-                        // 切换到本地存储模式
-                        useLocalStorage = true;
-                    } else {
-                        // 生成签名 URL（有效期 7 天）
-                        const { data: urlData } = await supabase
-                            .storage
-                            .from('share-files')
-                            .createSignedUrl(data.path, 60 * 60 * 24 * 7); // 7 天有效期
-                        
-                        fileUrl = urlData.signedUrl;
-                    }
-                } catch (error) {
+            try {
+                // 处理文件名，移除中文字符和特殊字符
+                const safeFileName = `${Date.now()}-${file.name.replace(/[\u4e00-\u9fa5]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+                const { data, error } = await supabase
+                    .storage
+                    .from('share-files')
+                    .upload(safeFileName, file);
+                
+                if (error) {
                     console.error('Error uploading file:', error);
-                    // 切换到本地存储模式
-                    useLocalStorage = true;
+                    if (error.statusCode === 401 || error.error === 'Unauthorized') {
+                        alert('登录已过期，请重新登录');
+                        window.location.href = 'login.html';
+                    } else {
+                        alert('文件上传失败，请重试');
+                    }
+                    return;
                 }
+                
+                // 生成签名 URL（有效期 7 天）
+                const { data: urlData } = await supabase
+                    .storage
+                    .from('share-files')
+                    .createSignedUrl(data.path, 60 * 60 * 24 * 7); // 7 天有效期
+                
+                fileUrl = urlData.signedUrl;
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                alert('文件上传失败，请重试');
+                return;
             }
             
             fileInfo = {
@@ -337,68 +341,41 @@ async function submitShare(event) {
         }
         
         if (courseName && finalShareType && shareTitle) {
-            if (useLocalStorage) {
-                // 使用本地存储
-                const shares = JSON.parse(localStorage.getItem('shares') || '[]');
-                shares.unshift({
-                    id: Date.now().toString(),
-                    title: shareTitle,
-                    courseName: courseName,
-                    shareType: finalShareType,
-                    content: content,
-                    fileInfo: fileInfo,
-                    created_at: new Date().toISOString()
-                });
-                localStorage.setItem('shares', JSON.stringify(shares));
-                alert('分享提交成功！');
-                // 跳转到学习资源查询页面
-                window.location.href = 'resources.html';
-            } else {
-                try {
-                    // 存储到 Supabase
-                    const { error } = await supabase
-                        .from('shares')
-                        .insert({
-                            title: shareTitle,
-                            courseName: courseName,
-                            shareType: finalShareType,
-                            content: content,
-                            fileInfo: fileInfo
-                        });
-                    
-                    if (error) {
-                        console.error('Error inserting share:', error);
-                        if (error.code === '42501' || error.status === 401) {
-                            alert('登录已过期，请重新登录');
-                            window.location.href = 'login.html';
-                        } else {
-                            // 切换到本地存储模式并重新提交
-                            useLocalStorage = true;
-                            // 重新调用函数使用本地存储
-                            submitShare(event);
-                        }
+            try {
+                // 存储到 Supabase
+                const { error } = await supabase
+                    .from('shares')
+                    .insert({
+                        title: shareTitle,
+                        courseName: courseName,
+                        shareType: finalShareType,
+                        content: content,
+                        fileInfo: fileInfo
+                    });
+                
+                if (error) {
+                    console.error('Error inserting share:', error);
+                    if (error.code === '42501' || error.status === 401) {
+                        alert('登录已过期，请重新登录');
+                        window.location.href = 'login.html';
                     } else {
-                        alert('分享提交成功！');
-                        // 跳转到学习资源查询页面
-                        window.location.href = 'resources.html';
+                        alert('提交失败，请重试');
                     }
-                } catch (error) {
-                    console.error('Error submitting share to Supabase:', error);
-                    // 切换到本地存储模式并重新提交
-                    useLocalStorage = true;
-                    // 重新调用函数使用本地存储
-                    submitShare(event);
+                } else {
+                    alert('分享提交成功！');
+                    // 跳转到学习资源查询页面
+                    window.location.href = 'resources.html';
                 }
+            } catch (error) {
+                console.error('Error submitting share:', error);
+                alert('提交失败，请重试');
             }
         } else {
             alert('请填写完整的分享信息');
         }
     } catch (error) {
         console.error('Error submitting share:', error);
-        // 切换到本地存储模式并重新提交
-        useLocalStorage = true;
-        // 重新调用函数使用本地存储
-        submitShare(event);
+        alert('提交失败，请重试');
     }
 }
 window.submitShare = submitShare;
@@ -418,7 +395,8 @@ async function submitGroupForm(event) {
     event.preventDefault();
     // 检查登录状态
     const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (!isLoggedIn) {
+    const authToken = localStorage.getItem('authToken');
+    if (!isLoggedIn || !authToken) {
         alert('请先登录');
         window.location.href = 'login.html';
         return;
@@ -434,70 +412,42 @@ async function submitGroupForm(event) {
         const contact = document.getElementById('contact').value;
         
         if (name && introduction && needs && contact) {
-            if (useLocalStorage) {
-                // 使用本地存储
-                const groups = JSON.parse(localStorage.getItem('groups') || '[]');
-                groups.unshift({
-                    id: Date.now().toString(),
-                    name: name,
-                    introduction: introduction,
-                    needs: needs,
-                    contact: contact,
-                    created_at: new Date().toISOString()
-                });
-                localStorage.setItem('groups', JSON.stringify(groups));
-                alert('表单提交成功！');
-                // 显示浏览页面
-                showSection('browse-groups');
-                // 重新加载小组列表
-                loadGroups();
-            } else {
-                try {
-                    // 存储到 Supabase
-                    const { error } = await supabase
-                        .from('groups')
-                        .insert({
-                            name: name,
-                            introduction: introduction,
-                            needs: needs,
-                            contact: contact
-                        });
-                    
-                    if (error) {
-                        console.error('Error inserting group:', error);
-                        if (error.code === '42501' || error.status === 401) {
-                            alert('登录已过期，请重新登录');
-                            window.location.href = 'login.html';
-                        } else {
-                            // 切换到本地存储模式并重新提交
-                            useLocalStorage = true;
-                            // 重新调用函数使用本地存储
-                            submitGroupForm(event);
-                        }
+            try {
+                // 存储到 Supabase
+                const { error } = await supabase
+                    .from('groups')
+                    .insert({
+                        name: name,
+                        introduction: introduction,
+                        needs: needs,
+                        contact: contact
+                    });
+                
+                if (error) {
+                    console.error('Error inserting group:', error);
+                    if (error.code === '42501' || error.status === 401) {
+                        alert('登录已过期，请重新登录');
+                        window.location.href = 'login.html';
                     } else {
-                        alert('表单提交成功！');
-                        // 显示浏览页面
-                        showSection('browse-groups');
-                        // 重新加载小组列表
-                        loadGroups();
+                        alert('提交失败，请重试');
                     }
-                } catch (error) {
-                    console.error('Error submitting group form to Supabase:', error);
-                    // 切换到本地存储模式并重新提交
-                    useLocalStorage = true;
-                    // 重新调用函数使用本地存储
-                    submitGroupForm(event);
+                } else {
+                    alert('表单提交成功！');
+                    // 显示浏览页面
+                    showSection('browse-groups');
+                    // 重新加载小组列表
+                    loadGroups();
                 }
+            } catch (error) {
+                console.error('Error submitting group form:', error);
+                alert('提交失败，请重试');
             }
         } else {
             alert('请填写完整的表单信息');
         }
     } catch (error) {
         console.error('Error submitting group form:', error);
-        // 切换到本地存储模式并重新提交
-        useLocalStorage = true;
-        // 重新调用函数使用本地存储
-        submitGroupForm(event);
+        alert('提交失败，请重试');
     }
 }
 window.submitGroupForm = submitGroupForm;

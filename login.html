@@ -180,17 +180,11 @@
                     window.location.href = 'main.html';
                 } else {
                     console.error('Error signing in:', error);
-                    // 即使Supabase登录失败，也允许使用本地存储登录
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('currentUser', user.name);
-                    window.location.href = 'main.html';
+                    alert('登录失败，请检查网络连接或稍后重试');
                 }
             } catch (error) {
                 console.error('Error signing in:', error);
-                // 即使Supabase登录失败，也允许使用本地存储登录
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('currentUser', user.name);
-                window.location.href = 'main.html';
+                alert('登录失败，请检查网络连接或稍后重试');
             } finally {
                 hideLoading(button, originalText);
             }
@@ -227,31 +221,11 @@
                     window.location.href = 'main.html';
                 } else {
                     console.error('Error signing up:', error);
-                    // 即使Supabase注册失败，也允许使用本地存储注册
-                    const newUser = {
-                        name: name,
-                        email: email,
-                        studentId: '2020000000',
-                        password: password
-                    };
-                    saveUser(newUser);
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('currentUser', name);
-                    window.location.href = 'main.html';
+                    alert('注册失败，请检查网络连接或稍后重试');
                 }
             } catch (error) {
                 console.error('Error signing up:', error);
-                // 即使Supabase注册失败，也允许使用本地存储注册
-                const newUser = {
-                    name: name,
-                    email: email,
-                    studentId: '2020000000',
-                    password: password
-                };
-                saveUser(newUser);
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('currentUser', name);
-                window.location.href = 'main.html';
+                alert('注册失败，请检查网络连接或稍后重试');
             } finally {
                 hideLoading(button, originalText);
             }
