@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录/注册 - 武大网安学习互助平台</title>
+    <!-- Tailwind CSS CDN (开发环境使用，生产环境建议本地安装) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN (开发环境使用) -->
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -147,45 +149,136 @@
             }
         }
 
+        // 显示加载状态
+        function showLoading(element) {
+            element.disabled = true;
+            element.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>处理中...';
+        }
+
+        // 隐藏加载状态
+        function hideLoading(element, originalText) {
+            element.disabled = false;
+            element.innerHTML = originalText;
+        }
+
+        // 统一登录函数
+        async function loginUser(user, button) {
+            // 显示加载状态
+            const originalText = button.innerHTML;
+            showLoading(button);
+            
+            // 尝试登录到 Supabase
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: user.email,
+                    password: user.password
+                });
+                if (data.user) {
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('currentUser', user.name);
+                    localStorage.setItem('authToken', data.session.access_token);
+                    window.location.href = 'main.html';
+                } else {
+                    console.error('Error signing in:', error);
+                    // 即使Supabase登录失败，也允许使用本地存储登录
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('currentUser', user.name);
+                    window.location.href = 'main.html';
+                }
+            } catch (error) {
+                console.error('Error signing in:', error);
+                // 即使Supabase登录失败，也允许使用本地存储登录
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('currentUser', user.name);
+                window.location.href = 'main.html';
+            } finally {
+                hideLoading(button, originalText);
+            }
+        }
+
+        // 统一注册函数
+        async function registerUser(name, button) {
+            // 显示加载状态
+            const originalText = button.innerHTML;
+            showLoading(button);
+            
+            // 自动生成邮箱和密码
+            const email = `${name}@example.com`;
+            const password = '123456';
+
+            // 尝试在 Supabase 中注册
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password
+                });
+                if (data.user) {
+                    // 注册成功
+                    const newUser = {
+                        name: name,
+                        email: email,
+                        studentId: '2020000000',
+                        password: password
+                    };
+                    saveUser(newUser);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('currentUser', name);
+                    localStorage.setItem('authToken', data.session.access_token);
+                    window.location.href = 'main.html';
+                } else {
+                    console.error('Error signing up:', error);
+                    // 即使Supabase注册失败，也允许使用本地存储注册
+                    const newUser = {
+                        name: name,
+                        email: email,
+                        studentId: '2020000000',
+                        password: password
+                    };
+                    saveUser(newUser);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('currentUser', name);
+                    window.location.href = 'main.html';
+                }
+            } catch (error) {
+                console.error('Error signing up:', error);
+                // 即使Supabase注册失败，也允许使用本地存储注册
+                const newUser = {
+                    name: name,
+                    email: email,
+                    studentId: '2020000000',
+                    password: password
+                };
+                saveUser(newUser);
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('currentUser', name);
+                window.location.href = 'main.html';
+            } finally {
+                hideLoading(button, originalText);
+            }
+        }
+
         // 登录按钮点击事件
-        document.getElementById('quick-login-btn').addEventListener('click', async () => {
+        document.getElementById('quick-login-btn').addEventListener('click', async function() {
+            const button = this;
             // 获取本地存储中的用户
             const users = getUsers();
-            // 检查是否有已注册的用户
+            // 检查是否有已注册的用户（排除测试用户）
             const registeredUsers = users.filter(user => user.name !== '测试用户');
             
             if (registeredUsers.length > 0) {
                 // 使用第一个已注册用户自动登录
                 const user = registeredUsers[0];
-                
-                // 尝试登录到 Supabase
-                try {
-                    const { data, error } = await supabase.auth.signInWithPassword({
-                        email: user.email,
-                        password: user.password
-                    });
-                    if (data.user) {
-                        localStorage.setItem('isLoggedIn', 'true');
-                        localStorage.setItem('currentUser', user.name);
-                        localStorage.setItem('authToken', data.session.access_token);
-                        window.location.href = 'main.html';
-                    } else {
-                        console.error('Error signing in:', error);
-                        alert('登录失败，请重试');
-                    }
-                } catch (error) {
-                    console.error('Error signing in:', error);
-                    alert('登录失败，请重试');
-                }
+                await loginUser(user, button);
             } else {
-                alert('请先注册');
+                alert('第一次使用请先注册');
                 // 切换到注册表单
                 registerTab.click();
             }
         });
 
         // 注册按钮点击事件
-        document.querySelector('#register-form button').addEventListener('click', async () => {
+        document.querySelector('#register-form button').addEventListener('click', async function() {
+            const button = this;
             // 确保已获取允许注册的姓名列表
             if (allowedNames.length === 0) {
                 await fetchAllowedNames();
@@ -212,37 +305,7 @@
                 return;
             }
 
-            // 自动生成邮箱和密码
-            const email = `${name}@example.com`;
-            const password = '123456';
-
-            // 尝试在 Supabase 中注册
-            try {
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password
-                });
-                if (data.user) {
-                    // 注册成功
-                    const newUser = {
-                        name: name,
-                        email: email,
-                        studentId: '2020000000',
-                        password: password
-                    };
-                    saveUser(newUser);
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('currentUser', name);
-                    localStorage.setItem('authToken', data.session.access_token);
-                    window.location.href = 'main.html';
-                } else {
-                    console.error('Error signing up:', error);
-                    alert('注册失败，请重试');
-                }
-            } catch (error) {
-                console.error('Error signing up:', error);
-                alert('注册失败，请重试');
-            }
+            await registerUser(name, button);
         });
 
         // 输入框焦点事件，移除错误提示
