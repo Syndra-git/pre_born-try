@@ -6,29 +6,23 @@ let supabase = createClient(supabaseUrl, supabaseKey);
 
 // 更新 Supabase 客户端的认证状态
 function updateSupabaseAuth() {
-    try {
-        const authToken = localStorage.getItem('authToken');
-        if (authToken) {
-            // 只在令牌变化时更新客户端
-            if (!supabase || !supabase._options || !supabase._options.global || !supabase._options.global.headers || supabase._options.global.headers.Authorization !== `Bearer ${authToken}`) {
-                supabase = createClient(supabaseUrl, supabaseKey, {
-                    global: {
-                        headers: {
-                            Authorization: `Bearer ${authToken}`
-                        }
+    const authToken = localStorage.getItem('authToken');
+    if (authToken) {
+        // 只在令牌变化时更新客户端
+        if (!supabase._options.global.headers || supabase._options.global.headers.Authorization !== `Bearer ${authToken}`) {
+            supabase = createClient(supabaseUrl, supabaseKey, {
+                global: {
+                    headers: {
+                        Authorization: `Bearer ${authToken}`
                     }
-                });
-            }
-        } else {
-            // 如果没有认证令牌，使用默认客户端
-            if (supabase && supabase._options && supabase._options.global && supabase._options.global.headers) {
-                supabase = createClient(supabaseUrl, supabaseKey);
-            }
+                }
+            });
         }
-    } catch (error) {
-        console.error('Error updating Supabase auth:', error);
-        // 发生错误时使用本地存储模式
-        useLocalStorage = true;
+    } else {
+        // 如果没有认证令牌，使用默认客户端
+        if (supabase._options.global.headers) {
+            supabase = createClient(supabaseUrl, supabaseKey);
+        }
     }
 }
 
@@ -242,62 +236,61 @@ async function submitShare(event) {
     event.preventDefault();
     // 检查登录状态
     const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const authToken = localStorage.getItem('authToken');
-    if (!isLoggedIn || !authToken) {
+    if (!isLoggedIn) {
         alert('请先登录');
         window.location.href = 'login.html';
         return;
     }
     
-    try {
-        // 更新认证状态
-        updateSupabaseAuth();
-        
-        const courseName = document.getElementById('course-name').value;
-        const shareType = document.getElementById('share-type').value;
-        let finalShareType = shareType;
-        if (shareType === '其他') {
-            const otherType = document.getElementById('other-type').value;
-            if (otherType) {
-                finalShareType = otherType;
-            }
+    // 更新认证状态
+    updateSupabaseAuth();
+    
+    const courseName = document.getElementById('course-name').value;
+    const shareType = document.getElementById('share-type').value;
+    let finalShareType = shareType;
+    if (shareType === '其他') {
+        const otherType = document.getElementById('other-type').value;
+        if (otherType) {
+            finalShareType = otherType;
         }
-        const shareTitle = document.getElementById('share-title').value;
-        const contentType = document.querySelector('input[name="content-type"]:checked').value;
+    }
+    const shareTitle = document.getElementById('share-title').value;
+    const contentType = document.querySelector('input[name="content-type"]:checked').value;
+    
+    let content = '';
+    let fileInfo = null;
+    let fileUrl = null;
+    
+    if (contentType === 'text') {
+        content = document.getElementById('share-content').value;
+        if (!content) {
+            alert('请输入文本内容');
+            return;
+        }
+    } else if (contentType === 'file') {
+        const fileInput = document.getElementById('share-file');
+        const file = fileInput.files[0];
+        if (!file) {
+            alert('请选择要上传的文件');
+            return;
+        }
         
-        let content = '';
-        let fileInfo = null;
-        let fileUrl = null;
+        // 检查文件类型
+        const allowedTypes = ['.zip', '.pdf', '.doc', '.docx', '.txt'];
+        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+        if (!allowedTypes.includes(fileExtension)) {
+            alert('不支持的文件类型，请上传 zip、pdf、word 或 txt 文件');
+            return;
+        }
         
-        if (contentType === 'text') {
-            content = document.getElementById('share-content').value;
-            if (!content) {
-                alert('请输入文本内容');
-                return;
-            }
-        } else if (contentType === 'file') {
-            const fileInput = document.getElementById('share-file');
-            const file = fileInput.files[0];
-            if (!file) {
-                alert('请选择要上传的文件');
-                return;
-            }
-            
-            // 检查文件类型
-            const allowedTypes = ['.zip', '.pdf', '.doc', '.docx', '.txt'];
-            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-            if (!allowedTypes.includes(fileExtension)) {
-                alert('不支持的文件类型，请上传 zip、pdf、word 或 txt 文件');
-                return;
-            }
-            
-            // 检查文件大小（限制为10MB）
-            if (file.size > 10 * 1024 * 1024) {
-                alert('文件大小超过限制，请上传小于10MB的文件');
-                return;
-            }
-            
-            // 上传文件到 Supabase Storage
+        // 检查文件大小（限制为10MB）
+        if (file.size > 10 * 1024 * 1024) {
+            alert('文件大小超过限制，请上传小于10MB的文件');
+            return;
+        }
+        
+        // 上传文件到 Supabase Storage
+        if (!useLocalStorage) {
             try {
                 // 处理文件名，移除中文字符和特殊字符
                 const safeFileName = `${Date.now()}-${file.name.replace(/[\u4e00-\u9fa5]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
@@ -329,19 +322,37 @@ async function submitShare(event) {
                 alert('文件上传失败，请重试');
                 return;
             }
-            
-            fileInfo = {
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                url: fileUrl
-            };
-            
-            content = `[文件] ${file.name}`;
         }
         
-        if (courseName && finalShareType && shareTitle) {
-            try {
+        fileInfo = {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            url: fileUrl
+        };
+        
+        content = `[文件] ${file.name}`;
+    }
+    
+    if (courseName && finalShareType && shareTitle) {
+        try {
+            if (useLocalStorage) {
+                // 使用本地存储
+                const shares = JSON.parse(localStorage.getItem('shares') || '[]');
+                shares.unshift({
+                    id: Date.now().toString(),
+                    title: shareTitle,
+                    courseName: courseName,
+                    shareType: finalShareType,
+                    content: content,
+                    fileInfo: fileInfo,
+                    created_at: new Date().toISOString()
+                });
+                localStorage.setItem('shares', JSON.stringify(shares));
+                alert('分享提交成功！');
+                // 跳转到学习资源查询页面
+                window.location.href = 'resources.html';
+            } else {
                 // 存储到 Supabase
                 const { error } = await supabase
                     .from('shares')
@@ -366,16 +377,13 @@ async function submitShare(event) {
                     // 跳转到学习资源查询页面
                     window.location.href = 'resources.html';
                 }
-            } catch (error) {
-                console.error('Error submitting share:', error);
-                alert('提交失败，请重试');
             }
-        } else {
-            alert('请填写完整的分享信息');
+        } catch (error) {
+            console.error('Error submitting share:', error);
+            alert('提交失败，请重试');
         }
-    } catch (error) {
-        console.error('Error submitting share:', error);
-        alert('提交失败，请重试');
+    } else {
+        alert('请填写完整的分享信息');
     }
 }
 window.submitShare = submitShare;
@@ -395,24 +403,40 @@ async function submitGroupForm(event) {
     event.preventDefault();
     // 检查登录状态
     const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const authToken = localStorage.getItem('authToken');
-    if (!isLoggedIn || !authToken) {
+    if (!isLoggedIn) {
         alert('请先登录');
         window.location.href = 'login.html';
         return;
     }
     
-    try {
-        // 更新认证状态
-        updateSupabaseAuth();
-        
-        const name = document.getElementById('name').value;
-        const introduction = document.getElementById('introduction').value;
-        const needs = document.getElementById('needs').value;
-        const contact = document.getElementById('contact').value;
-        
-        if (name && introduction && needs && contact) {
-            try {
+    // 更新认证状态
+    updateSupabaseAuth();
+    
+    const name = document.getElementById('name').value;
+    const introduction = document.getElementById('introduction').value;
+    const needs = document.getElementById('needs').value;
+    const contact = document.getElementById('contact').value;
+    
+    if (name && introduction && needs && contact) {
+        try {
+            if (useLocalStorage) {
+                // 使用本地存储
+                const groups = JSON.parse(localStorage.getItem('groups') || '[]');
+                groups.unshift({
+                    id: Date.now().toString(),
+                    name: name,
+                    introduction: introduction,
+                    needs: needs,
+                    contact: contact,
+                    created_at: new Date().toISOString()
+                });
+                localStorage.setItem('groups', JSON.stringify(groups));
+                alert('表单提交成功！');
+                // 显示浏览页面
+                showSection('browse-groups');
+                // 重新加载小组列表
+                loadGroups();
+            } else {
                 // 存储到 Supabase
                 const { error } = await supabase
                     .from('groups')
@@ -438,16 +462,13 @@ async function submitGroupForm(event) {
                     // 重新加载小组列表
                     loadGroups();
                 }
-            } catch (error) {
-                console.error('Error submitting group form:', error);
-                alert('提交失败，请重试');
             }
-        } else {
-            alert('请填写完整的表单信息');
+        } catch (error) {
+            console.error('Error submitting group form:', error);
+            alert('提交失败，请重试');
         }
-    } catch (error) {
-        console.error('Error submitting group form:', error);
-        alert('提交失败，请重试');
+    } else {
+        alert('请填写完整的表单信息');
     }
 }
 window.submitGroupForm = submitGroupForm;
