@@ -96,23 +96,12 @@
 
                 <!-- 登录表单 -->
                 <div id="login-form" class="space-y-6">
-                    <div>
-                        <label for="login-email" class="block text-gray-700 font-medium mb-2">邮箱/学号</label>
-                        <input type="text" id="login-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入邮箱或学号">
+                    <div class="text-center py-8">
+                        <p class="text-gray-600 mb-4">欢迎回来！</p>
+                        <p class="text-gray-500 text-sm mb-6">点击下方按钮直接登录</p>
                     </div>
-                    <div>
-                        <label for="login-password" class="block text-gray-700 font-medium mb-2">密码</label>
-                        <input type="password" id="login-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入密码">
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="remember" class="mr-2">
-                            <label for="remember" class="text-gray-600">记住我</label>
-                        </div>
-                        <a href="#" class="text-primary hover:underline">忘记密码？</a>
-                    </div>
-                    <button class="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-secondary transition-all-300">
-                        登录 <i class="fa fa-arrow-right ml-2"></i>
+                    <button id="quick-login-btn" class="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-secondary transition-all-300">
+                        一键登录 <i class="fa fa-arrow-right ml-2"></i>
                     </button>
                 </div>
 
@@ -121,22 +110,6 @@
                     <div>
                         <label for="register-name" class="block text-gray-700 font-medium mb-2">姓名</label>
                         <input type="text" id="register-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入姓名">
-                    </div>
-                    <div>
-                        <label for="register-email" class="block text-gray-700 font-medium mb-2">邮箱</label>
-                        <input type="email" id="register-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入邮箱">
-                    </div>
-                    <div>
-                        <label for="register-student-id" class="block text-gray-700 font-medium mb-2">学号</label>
-                        <input type="text" id="register-student-id" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入学号">
-                    </div>
-                    <div>
-                        <label for="register-password" class="block text-gray-700 font-medium mb-2">密码</label>
-                        <input type="password" id="register-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入密码">
-                    </div>
-                    <div>
-                        <label for="register-confirm-password" class="block text-gray-700 font-medium mb-2">确认密码</label>
-                        <input type="password" id="register-confirm-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请再次输入密码">
                     </div>
                     <button class="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-secondary transition-all-300">
                         注册 <i class="fa fa-user-plus ml-2"></i>
@@ -297,56 +270,27 @@
         }
 
         // 登录按钮点击事件
-        document.querySelector('#login-form button').addEventListener('click', async () => {
-            const emailInput = document.getElementById('login-email');
-            const passwordInput = document.getElementById('login-password');
-            const rememberCheckbox = document.getElementById('remember');
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-
-            // 表单验证
-            if (!email) {
-                showError(emailInput, '请输入邮箱或学号');
-                return;
-            }
-            if (!password) {
-                showError(passwordInput, '请输入密码');
-                return;
-            }
-
-            // 查找用户
-            const user = findUser(email);
-            if (!user) {
-                showError(emailInput, '用户不存在，请先注册');
-                return;
-            }
-
-            // 验证密码
-            if (user.password !== password) {
-                showError(passwordInput, '密码错误，请重新输入');
-                return;
-            }
-
-            // 登录成功
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('currentUser', email);
-            
-            // 存储用户令牌（如果使用 Supabase 认证）
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                localStorage.setItem('authToken', session.access_token);
-            }
-            
-            // 记住我功能
-            if (rememberCheckbox.checked) {
-                localStorage.setItem('rememberedUser', email);
-                localStorage.setItem('rememberedPassword', password);
+        document.getElementById('quick-login-btn').addEventListener('click', async () => {
+            // 获取本地存储中的用户
+            const users = getUsers();
+            if (users.length > 0) {
+                // 使用第一个用户自动登录
+                const user = users[0];
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('currentUser', user.name);
+                
+                // 存储用户令牌（如果使用 Supabase 认证）
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    localStorage.setItem('authToken', session.access_token);
+                }
+                
+                window.location.href = 'main.html';
             } else {
-                localStorage.removeItem('rememberedUser');
-                localStorage.removeItem('rememberedPassword');
+                alert('请先注册');
+                // 切换到注册表单
+                registerTab.click();
             }
-            
-            window.location.href = 'main.html';
         });
 
         // 注册按钮点击事件
@@ -357,16 +301,7 @@
             }
             
             const nameInput = document.getElementById('register-name');
-            const emailInput = document.getElementById('register-email');
-            const studentIdInput = document.getElementById('register-student-id');
-            const passwordInput = document.getElementById('register-password');
-            const confirmPasswordInput = document.getElementById('register-confirm-password');
-
             const name = nameInput.value.trim();
-            const email = emailInput.value.trim();
-            const studentId = studentIdInput.value.trim();
-            const password = passwordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
 
             // 表单验证
             if (!name) {
@@ -378,39 +313,28 @@
                 showError(nameInput, '您的姓名不在允许注册的列表中');
                 return;
             }
-            if (!email) {
-                showError(emailInput, '请输入邮箱');
-                return;
-            }
-            if (!studentId) {
-                showError(studentIdInput, '请输入学号');
-                return;
-            }
-            if (!password) {
-                showError(passwordInput, '请输入密码');
-                return;
-            }
-            if (password !== confirmPassword) {
-                showError(confirmPasswordInput, '两次输入的密码不一致');
+
+            // 检查用户是否已存在
+            const existingUser = getUsers().find(user => user.name === name);
+            if (existingUser) {
+                showError(nameInput, '该姓名已注册，请直接登录');
                 return;
             }
 
-            // 检查用户是否已存在
-            if (findUser(email)) {
-                showError(emailInput, '该邮箱已注册，请直接登录');
-                return;
-            }
+            // 自动生成邮箱和密码
+            const email = `${name}@example.com`;
+            const password = '123456';
 
             // 注册成功
             const newUser = {
                 name: name,
                 email: email,
-                studentId: studentId,
+                studentId: '2020000000',
                 password: password
             };
             saveUser(newUser);
             localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('currentUser', email);
+            localStorage.setItem('currentUser', name);
             
             // 存储用户令牌（如果使用 Supabase 认证）
             const { data: { session } } = await supabase.auth.getSession();
