@@ -2,34 +2,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 import { supabaseUrl, supabaseKey } from './supabaseConfig.js';
 
 // 初始化 Supabase
-let supabase = createClient(supabaseUrl, supabaseKey);
-
-// 更新 Supabase 客户端的认证状态
-function updateSupabaseAuth() {
-    const authToken = localStorage.getItem('authToken');
-    if (authToken) {
-        // 只在令牌变化时更新客户端
-        const hasGlobalHeaders = supabase._options && supabase._options.global && supabase._options.global.headers;
-        if (!hasGlobalHeaders || supabase._options.global.headers.Authorization !== `Bearer ${authToken}`) {
-            supabase = createClient(supabaseUrl, supabaseKey, {
-                global: {
-                    headers: {
-                        Authorization: `Bearer ${authToken}`
-                    }
-                }
-            });
-        }
-    } else {
-        // 如果没有认证令牌，使用默认客户端
-        const hasGlobalHeaders = supabase._options && supabase._options.global && supabase._options.global.headers;
-        if (hasGlobalHeaders) {
-            supabase = createClient(supabaseUrl, supabaseKey);
-        }
-    }
-}
-
-// 检查是否使用本地存储模式
-let useLocalStorage = false;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // 测试 Supabase 连接
 async function testSupabaseConnection() {
@@ -51,9 +24,11 @@ async function testSupabaseConnection() {
     }
 }
 
-// 页面加载时更新认证状态并测试连接
+// 检查是否使用本地存储模式
+let useLocalStorage = false;
+
+// 页面加载时测试连接
 window.onload = function() {
-    updateSupabaseAuth();
     testSupabaseConnection().then((connected) => {
         if (!connected) {
             console.warn('Supabase 连接失败，将使用本地存储模式');
@@ -134,17 +109,10 @@ async function filterPosts(searchTerm) {
                 content.includes(searchTerm.toLowerCase())) {
                 const post = document.createElement('div');
                 post.className = 'post';
-                
-                // 检查是否有文件信息
-                let contentHTML = share.content;
-                if (share.fileInfo && share.fileInfo.url) {
-                    contentHTML = `<a href="${share.fileInfo.url}" target="_blank">下载文件：${share.fileInfo.name}</a>`;
-                }
-                
                 post.innerHTML = `
                     <h3>${share.title}</h3>
                     <div class="course-info">${share.courseName} ${share.shareType}</div>
-                    <div class="content">${contentHTML}</div>
+                    <div class="content">${share.content}</div>
                 `;
                 searchResults.appendChild(post);
                 found = true;
@@ -192,17 +160,10 @@ async function loadShares() {
         data.forEach(share => {
             const post = document.createElement('div');
             post.className = 'post';
-            
-            // 检查是否有文件信息
-            let contentHTML = share.content;
-            if (share.fileInfo && share.fileInfo.url) {
-                contentHTML = `<a href="${share.fileInfo.url}" target="_blank">下载文件：${share.fileInfo.name}</a>`;
-            }
-            
             post.innerHTML = `
                 <h3>${share.title}</h3>
                 <div class="course-info">${share.courseName} ${share.shareType}</div>
-                <div class="content">${contentHTML}</div>
+                <div class="content">${share.content}</div>
             `;
             searchResults.appendChild(post);
         });
@@ -226,17 +187,6 @@ window.toggleOtherOption = toggleOtherOption;
 
 async function submitShare(event) {
     event.preventDefault();
-    // 检查登录状态
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (!isLoggedIn) {
-        alert('请先登录');
-        window.location.href = 'login.html';
-        return;
-    }
-    
-    // 更新认证状态
-    updateSupabaseAuth();
-    
     const courseName = document.getElementById('course-name').value;
     const shareType = document.getElementById('share-type').value;
     let finalShareType = shareType;
@@ -247,88 +197,9 @@ async function submitShare(event) {
         }
     }
     const shareTitle = document.getElementById('share-title').value;
-    const contentType = document.querySelector('input[name="content-type"]:checked').value;
+    const shareContent = document.getElementById('share-content').value;
     
-    let content = '';
-    let fileInfo = null;
-    let fileUrl = null;
-    
-    if (contentType === 'text') {
-        content = document.getElementById('share-content').value;
-        if (!content) {
-            alert('请输入文本内容');
-            return;
-        }
-    } else if (contentType === 'file') {
-        const fileInput = document.getElementById('share-file');
-        const file = fileInput.files[0];
-        if (!file) {
-            alert('请选择要上传的文件');
-            return;
-        }
-        
-        // 检查文件类型
-        const allowedTypes = ['.zip', '.pdf', '.doc', '.docx', '.txt'];
-        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-        if (!allowedTypes.includes(fileExtension)) {
-            alert('不支持的文件类型，请上传 zip、pdf、word 或 txt 文件');
-            return;
-        }
-        
-        // 检查文件大小（限制为10MB）
-        if (file.size > 10 * 1024 * 1024) {
-            alert('文件大小超过限制，请上传小于10MB的文件');
-            return;
-        }
-        
-        // 上传文件到 Supabase Storage
-        if (!useLocalStorage) {
-            try {
-                // 处理文件名，移除中文字符和特殊字符
-                const safeFileName = `${Date.now()}-${file.name.replace(/[\u4e00-\u9fa5]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-                const { data, error } = await supabase
-                    .storage
-                    .from('share-files')
-                    .upload(safeFileName, file);
-                
-                if (error) {
-                    console.error('Error uploading file:', error);
-                    if (error.statusCode === 401 || error.error === 'Unauthorized') {
-                        // 即使Supabase认证失败，也允许使用本地存储模式
-                        console.warn('Supabase 认证失败，切换到本地存储模式');
-                        useLocalStorage = true;
-                    } else {
-                        alert('文件上传失败，请重试');
-                        return;
-                    }
-                } else {
-                    // 生成签名 URL（有效期 7 天）
-                    const { data: urlData } = await supabase
-                        .storage
-                        .from('share-files')
-                        .createSignedUrl(data.path, 60 * 60 * 24 * 7); // 7 天有效期
-                    
-                    fileUrl = urlData.signedUrl;
-                }
-            } catch (error) {
-                console.error('Error uploading file:', error);
-                // 即使Supabase上传失败，也允许使用本地存储模式
-                console.warn('Supabase 上传失败，切换到本地存储模式');
-                useLocalStorage = true;
-            }
-        }
-        
-        fileInfo = {
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            url: fileUrl
-        };
-        
-        content = `[文件] ${file.name}`;
-    }
-    
-    if (courseName && finalShareType && shareTitle) {
+    if (courseName && finalShareType && shareTitle && shareContent) {
         try {
             if (useLocalStorage) {
                 // 使用本地存储
@@ -338,8 +209,7 @@ async function submitShare(event) {
                     title: shareTitle,
                     courseName: courseName,
                     shareType: finalShareType,
-                    content: content,
-                    fileInfo: fileInfo,
+                    content: shareContent,
                     created_at: new Date().toISOString()
                 });
                 localStorage.setItem('shares', JSON.stringify(shares));
@@ -354,34 +224,12 @@ async function submitShare(event) {
                         title: shareTitle,
                         courseName: courseName,
                         shareType: finalShareType,
-                        content: content,
-                        fileInfo: fileInfo
+                        content: shareContent
                     });
                 
                 if (error) {
                     console.error('Error inserting share:', error);
-                    if (error.code === '42501' || error.status === 401) {
-                        // 即使Supabase认证失败，也允许使用本地存储模式
-                        console.warn('Supabase 认证失败，切换到本地存储模式');
-                        useLocalStorage = true;
-                        // 使用本地存储
-                        const shares = JSON.parse(localStorage.getItem('shares') || '[]');
-                        shares.unshift({
-                            id: Date.now().toString(),
-                            title: shareTitle,
-                            courseName: courseName,
-                            shareType: finalShareType,
-                            content: content,
-                            fileInfo: fileInfo,
-                            created_at: new Date().toISOString()
-                        });
-                        localStorage.setItem('shares', JSON.stringify(shares));
-                        alert('分享提交成功！');
-                        // 跳转到学习资源查询页面
-                        window.location.href = 'resources.html';
-                    } else {
-                        alert('提交失败，请重试');
-                    }
+                    alert('提交失败，请重试');
                 } else {
                     alert('分享提交成功！');
                     // 跳转到学习资源查询页面
@@ -411,17 +259,6 @@ window.showSection = showSection;
 
 async function submitGroupForm(event) {
     event.preventDefault();
-    // 检查登录状态
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (!isLoggedIn) {
-        alert('请先登录');
-        window.location.href = 'login.html';
-        return;
-    }
-    
-    // 更新认证状态
-    updateSupabaseAuth();
-    
     const name = document.getElementById('name').value;
     const introduction = document.getElementById('introduction').value;
     const needs = document.getElementById('needs').value;
@@ -459,29 +296,7 @@ async function submitGroupForm(event) {
                 
                 if (error) {
                     console.error('Error inserting group:', error);
-                    if (error.code === '42501' || error.status === 401) {
-                        // 即使Supabase认证失败，也允许使用本地存储模式
-                        console.warn('Supabase 认证失败，切换到本地存储模式');
-                        useLocalStorage = true;
-                        // 使用本地存储
-                        const groups = JSON.parse(localStorage.getItem('groups') || '[]');
-                        groups.unshift({
-                            id: Date.now().toString(),
-                            name: name,
-                            introduction: introduction,
-                            needs: needs,
-                            contact: contact,
-                            created_at: new Date().toISOString()
-                        });
-                        localStorage.setItem('groups', JSON.stringify(groups));
-                        alert('表单提交成功！');
-                        // 显示浏览页面
-                        showSection('browse-groups');
-                        // 重新加载小组列表
-                        loadGroups();
-                    } else {
-                        alert('提交失败，请重试');
-                    }
+                    alert('提交失败，请重试');
                 } else {
                     alert('表单提交成功！');
                     // 显示浏览页面

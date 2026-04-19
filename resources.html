@@ -7,19 +7,12 @@
     <link rel="stylesheet" href="style.css">
     <script type="module" src="script.js"></script>
     <script>
-        // 页面加载时执行
+        // 页面加载时加载分享内容
         window.onload = function() {
-            // 检查登录状态
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            if (!isLoggedIn) {
-                window.location.href = 'login.html';
-                return;
-            }
-            
             // 延迟执行，确保script.js已经加载完成
             setTimeout(function() {
-                if (window.loadShares) {
-                    window.loadShares();
+                if (typeof loadShares === 'function') {
+                    loadShares();
                 }
             }, 100);
         };
