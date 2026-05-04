@@ -8,6 +8,14 @@
     <script type="module" src="script.js"></script>
 </head>
 <body>
+    <script>
+        window.onload = function() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (!isLoggedIn || isLoggedIn !== 'true') {
+                window.location.href = 'login.html';
+            }
+        };
+    </script>
     <div class="container">
         <nav class="navbar">
             <div class="navbar-container">

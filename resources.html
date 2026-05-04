@@ -7,8 +7,14 @@
     <link rel="stylesheet" href="style.css">
     <script type="module" src="script.js"></script>
     <script>
-        // 页面加载时加载分享内容
+        // 页面加载时检查登录状态
         window.onload = function() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (!isLoggedIn || isLoggedIn !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+            
             // 延迟执行，确保script.js已经加载完成
             setTimeout(function() {
                 if (typeof loadShares === 'function') {
