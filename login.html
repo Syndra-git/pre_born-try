@@ -3,381 +3,412 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录/注册 - 武大网安学习互助平台</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#1E40AF',
-                        secondary: '#3B82F6',
-                        light: '#F3F4F6',
-                        dark: '#1F2937',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                }
-            }
+    <title>登录 - 武大网安学习互助平台</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f8fa 0%, #e9f0f5 100%);
         }
-    </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .content-auto {
-                content-visibility: auto;
-            }
-            .text-shadow {
-                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            .transition-all-300 {
-                transition: all 0.3s ease;
-            }
-            .glass-effect {
-                background: rgba(255, 255, 255, 0.1);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-            }
+        
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            padding: 20px;
+        }
+        
+        .login-box {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+        }
+        
+        .login-box h2 {
+            color: #1a56db;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+        
+        .login-box p {
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #1a56db;
+            box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
+        }
+        
+        .form-group button {
+            width: 100%;
+            padding: 14px;
+            background-color: #1a56db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        
+        .form-group button:hover {
+            background-color: #1543a0;
+        }
+        
+        .switch-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #4a5568;
+            font-size: 0.9em;
+        }
+        
+        .switch-link a {
+            color: #1a56db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .switch-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: #e53e3e;
+            font-size: 0.85em;
+            margin-top: 8px;
+            display: none;
+        }
+        
+        .success-message {
+            color: #38a169;
+            font-size: 0.85em;
+            margin-top: 8px;
+            display: none;
+        }
+        
+        .form-section {
+            display: none;
+        }
+        
+        .form-section.active {
+            display: block;
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-primary to-secondary min-h-screen flex items-center justify-center p-4">
-    <div class="container mx-auto max-w-4xl">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <!-- 左侧品牌信息 -->
-            <div class="hidden md:block text-center text-white">
-                <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
-                    <i class="fa fa-shield text-primary text-5xl"></i>
-                </div>
-                <h1 class="text-4xl font-bold mb-6 text-shadow">武大网安学习互助平台</h1>
-                <p class="text-xl mb-8 text-shadow">
-                    覆盖课程学习、实践操作、特色方向、资源拓展四大核心场景
-                </p>
-                <div class="space-y-4 text-left">
-                    <div class="flex items-center">
-                        <i class="fa fa-check-circle text-green-300 mr-3 text-xl"></i>
-                        <span>核心课程学习资源</span>
+<body>
+    <div class="container">
+        <div class="login-container">
+            <div class="login-box">
+                <h2>武汉大学国家网络安全学院</h2>
+                <p>专业学习互助平台</p>
+                
+                <div id="login-section" class="form-section active">
+                    <div class="form-group">
+                        <label for="login-name">姓名</label>
+                        <input type="text" id="login-name" placeholder="请输入您的姓名">
+                        <div id="login-name-error" class="error-message"></div>
                     </div>
-                    <div class="flex items-center">
-                        <i class="fa fa-check-circle text-green-300 mr-3 text-xl"></i>
-                        <span>实践操作指南</span>
+                    <div class="form-group">
+                        <label for="login-password">密码</label>
+                        <input type="password" id="login-password" placeholder="请输入密码">
+                        <div id="login-password-error" class="error-message"></div>
                     </div>
-                    <div class="flex items-center">
-                        <i class="fa fa-check-circle text-green-300 mr-3 text-xl"></i>
-                        <span>特色方向学习内容</span>
+                    <div class="form-group">
+                        <button onclick="handleLogin()">登录</button>
                     </div>
-                    <div class="flex items-center">
-                        <i class="fa fa-check-circle text-green-300 mr-3 text-xl"></i>
-                        <span>资源拓展与互助交流</span>
+                    <div class="switch-link">
+                        首次登录？<a href="#" onclick="showRegisterSection(); return false;">请先设置密码</a>
                     </div>
                 </div>
-            </div>
-
-            <!-- 右侧登录/注册表单 -->
-            <div class="bg-white rounded-2xl shadow-xl p-8 md:p-10 w-full">
-                <div class="text-center mb-8">
-                    <h2 class="text-3xl font-bold text-dark mb-2">欢迎登录</h2>
-                    <p class="text-gray-600">登录后访问学习资源和参与社区交流</p>
-                </div>
-
-                <!-- 表单切换 -->
-                <div class="flex border-b border-gray-200 mb-6">
-                    <button id="login-tab" class="flex-1 py-3 text-center font-semibold text-primary border-b-2 border-primary">
-                        登录
-                    </button>
-                    <button id="register-tab" class="flex-1 py-3 text-center font-semibold text-gray-500 hover:text-primary">
-                        注册
-                    </button>
-                </div>
-
-                <!-- 登录表单 -->
-                <div id="login-form" class="space-y-6">
-                    <div>
-                        <label for="login-email" class="block text-gray-700 font-medium mb-2">邮箱/学号</label>
-                        <input type="text" id="login-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入邮箱或学号">
+                
+                <div id="register-section" class="form-section">
+                    <div class="form-group">
+                        <label for="register-name">姓名</label>
+                        <input type="text" id="register-name" placeholder="请输入您的姓名（需在名单中）">
+                        <div id="register-name-error" class="error-message"></div>
+                        <div id="register-name-success" class="success-message"></div>
                     </div>
-                    <div>
-                        <label for="login-password" class="block text-gray-700 font-medium mb-2">密码</label>
-                        <input type="password" id="login-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入密码">
+                    <div class="form-group">
+                        <label for="register-password">设置密码</label>
+                        <input type="password" id="register-password" placeholder="请设置密码">
+                        <div id="register-password-error" class="error-message"></div>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="remember" class="mr-2">
-                            <label for="remember" class="text-gray-600">记住我</label>
-                        </div>
-                        <a href="#" class="text-primary hover:underline">忘记密码？</a>
+                    <div class="form-group">
+                        <label for="register-confirm-password">确认密码</label>
+                        <input type="password" id="register-confirm-password" placeholder="请再次输入密码">
+                        <div id="register-confirm-error" class="error-message"></div>
                     </div>
-                    <button class="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-secondary transition-all-300">
-                        登录 <i class="fa fa-arrow-right ml-2"></i>
-                    </button>
-                </div>
-
-                <!-- 注册表单 -->
-                <div id="register-form" class="space-y-6 hidden">
-                    <div>
-                        <label for="register-name" class="block text-gray-700 font-medium mb-2">姓名</label>
-                        <input type="text" id="register-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入姓名">
+                    <div class="form-group">
+                        <button onclick="handleRegister()">确认注册</button>
                     </div>
-                    <div>
-                        <label for="register-email" class="block text-gray-700 font-medium mb-2">邮箱</label>
-                        <input type="email" id="register-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入邮箱">
-                    </div>
-                    <div>
-                        <label for="register-student-id" class="block text-gray-700 font-medium mb-2">学号</label>
-                        <input type="text" id="register-student-id" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入学号">
-                    </div>
-                    <div>
-                        <label for="register-password" class="block text-gray-700 font-medium mb-2">密码</label>
-                        <input type="password" id="register-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入密码">
-                    </div>
-                    <div>
-                        <label for="register-confirm-password" class="block text-gray-700 font-medium mb-2">确认密码</label>
-                        <input type="password" id="register-confirm-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请再次输入密码">
-                    </div>
-                    <button class="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-secondary transition-all-300">
-                        注册 <i class="fa fa-user-plus ml-2"></i>
-                    </button>
-                </div>
-
-                <!-- 其他登录方式 -->
-                <div class="mt-8">
-                    <div class="flex items-center justify-center mb-6">
-                        <div class="flex-grow h-px bg-gray-200"></div>
-                        <span class="mx-4 text-gray-500">其他登录方式</span>
-                        <div class="flex-grow h-px bg-gray-200"></div>
-                    </div>
-                    <div class="flex justify-center space-x-6">
-                        <button class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center hover:bg-blue-200 transition-all-300">
-                            <i class="fa fa-weixin text-green-600 text-xl"></i>
-                        </button>
-                        <button class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center hover:bg-blue-200 transition-all-300">
-                            <i class="fa fa-qq text-blue-500 text-xl"></i>
-                        </button>
-                        <button class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center hover:bg-blue-200 transition-all-300">
-                            <i class="fa fa-weibo text-red-500 text-xl"></i>
-                        </button>
+                    <div class="switch-link">
+                        已有账号？<a href="#" onclick="showLoginSection(); return false;">返回登录</a>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <div class="footer">
+            <p>© 2026 武汉大学国家网络安全学院</p>
+        </div>
     </div>
 
-    <script>
-        // 表单切换
-        const loginTab = document.getElementById('login-tab');
-        const registerTab = document.getElementById('register-tab');
-        const loginForm = document.getElementById('login-form');
-        const registerForm = document.getElementById('register-form');
-
-        loginTab.addEventListener('click', () => {
-            loginTab.classList.add('text-primary', 'border-primary');
-            loginTab.classList.remove('text-gray-500');
-            registerTab.classList.remove('text-primary', 'border-primary');
-            registerTab.classList.add('text-gray-500');
-            loginForm.classList.remove('hidden');
-            registerForm.classList.add('hidden');
-        });
-
-        registerTab.addEventListener('click', () => {
-            registerTab.classList.add('text-primary', 'border-primary');
-            registerTab.classList.remove('text-gray-500');
-            loginTab.classList.remove('text-primary', 'border-primary');
-            loginTab.classList.add('text-gray-500');
-            registerForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-        });
-
-        // 模拟用户数据库
-        function getUsers() {
-            // 检查是否已有用户数据
-            let users = localStorage.getItem('users');
-            if (users) {
-                return JSON.parse(users);
-            }
-            
-            // 预设测试账号
-            const defaultUsers = [
-                {
-                    name: '测试用户',
-                    email: 'test@example.com',
-                    studentId: '2020000000',
-                    password: 'test123'
-                }
-            ];
-            
-            // 保存预设用户到本地存储
-            localStorage.setItem('users', JSON.stringify(defaultUsers));
-            return defaultUsers;
-        }
-
-        function saveUser(user) {
-            const users = getUsers();
-            users.push(user);
-            localStorage.setItem('users', JSON.stringify(users));
-        }
-
-        function findUser(email) {
-            const users = getUsers();
-            return users.find(user => user.email === email);
-        }
-
-        // 页面加载时自动填充记住的用户凭据
-        window.addEventListener('load', function() {
-            const rememberedUser = localStorage.getItem('rememberedUser');
-            const rememberedPassword = localStorage.getItem('rememberedPassword');
-            
-            if (rememberedUser && rememberedPassword) {
-                document.getElementById('login-email').value = rememberedUser;
-                document.getElementById('login-password').value = rememberedPassword;
-                document.getElementById('remember').checked = true;
-            }
-        });
-
-        // 显示错误提示
-        function showError(element, message) {
-            const errorElement = document.createElement('p');
-            errorElement.className = 'text-red-500 text-sm mt-1';
-            errorElement.textContent = message;
-            errorElement.id = 'error-message';
-            
-            // 移除已存在的错误提示
-            const existingError = element.parentElement.querySelector('#error-message');
-            if (existingError) {
-                existingError.remove();
-            }
-            
-            element.parentElement.appendChild(errorElement);
-        }
-
-        // 移除错误提示
-        function removeError(element) {
-            const errorElement = element.parentElement.querySelector('#error-message');
-            if (errorElement) {
-                errorElement.remove();
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.1/+esm';
+        import { supabaseUrl, supabaseKey } from './supabaseConfig.js';
+        
+        let supabase = null;
+        let useLocalStorage = true;
+        
+        async function testSupabaseConnection() {
+            try {
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Timeout')), 3000);
+                });
+                
+                supabase = createClient(supabaseUrl, supabaseKey);
+                
+                const { data, error } = await Promise.race([
+                    supabase.from('users').select('*').limit(1),
+                    timeoutPromise
+                ]);
+                
+                return !error;
+            } catch {
+                return false;
             }
         }
-
-        // 登录按钮点击事件
-        document.querySelector('#login-form button').addEventListener('click', () => {
-            const emailInput = document.getElementById('login-email');
-            const passwordInput = document.getElementById('login-password');
-            const rememberCheckbox = document.getElementById('remember');
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-
-            // 表单验证
-            if (!email) {
-                showError(emailInput, '请输入邮箱或学号');
-                return;
-            }
-            if (!password) {
-                showError(passwordInput, '请输入密码');
-                return;
-            }
-
-            // 查找用户
-            const user = findUser(email);
-            if (!user) {
-                showError(emailInput, '用户不存在，请先注册');
-                return;
-            }
-
-            // 验证密码
-            if (user.password !== password) {
-                showError(passwordInput, '密码错误，请重新输入');
-                return;
-            }
-
-            // 登录成功
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('currentUser', email);
-            
-            // 记住我功能
-            if (rememberCheckbox.checked) {
-                localStorage.setItem('rememberedUser', email);
-                localStorage.setItem('rememberedPassword', password);
+        
+        testSupabaseConnection().then((connected) => {
+            if (connected) {
+                useLocalStorage = false;
+                console.log('Supabase 连接成功');
             } else {
-                localStorage.removeItem('rememberedUser');
-                localStorage.removeItem('rememberedPassword');
+                console.warn('Supabase 连接失败或超时，使用本地存储模式');
+                useLocalStorage = true;
+            }
+        }).catch(() => {
+            console.warn('Supabase 连接异常，使用本地存储模式');
+            useLocalStorage = true;
+        });
+        
+        const ALLOWED_NAMES = [
+            '张三', '李四', '王五', '赵六', '钱七',
+            '孙八', '周九', '吴十', '郑一', '陈二',
+            '测试用户'
+        ];
+        
+        function showError(elementId, message) {
+            const errorEl = document.getElementById(elementId);
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => { errorEl.style.display = 'none'; }, 3000);
+        }
+        
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+                el.textContent = '';
+            });
+            document.querySelectorAll('.success-message').forEach(el => {
+                el.style.display = 'none';
+                el.textContent = '';
+            });
+        }
+        
+        function showLoginSection() {
+            clearErrors();
+            document.getElementById('login-section').classList.add('active');
+            document.getElementById('register-section').classList.remove('active');
+        }
+        
+        function showRegisterSection() {
+            clearErrors();
+            document.getElementById('register-section').classList.add('active');
+            document.getElementById('login-section').classList.remove('active');
+        }
+        
+        async function checkNameInList(name) {
+            if (!name.trim()) return false;
+            
+            if (useLocalStorage) {
+                return ALLOWED_NAMES.includes(name.trim());
             }
             
-            window.location.href = 'index.html';
-        });
-
-        // 注册按钮点击事件
-        document.querySelector('#register-form button').addEventListener('click', () => {
-            const nameInput = document.getElementById('register-name');
-            const emailInput = document.getElementById('register-email');
-            const studentIdInput = document.getElementById('register-student-id');
-            const passwordInput = document.getElementById('register-password');
-            const confirmPasswordInput = document.getElementById('register-confirm-password');
-
-            const name = nameInput.value.trim();
-            const email = emailInput.value.trim();
-            const studentId = studentIdInput.value.trim();
-            const password = passwordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
-
-            // 表单验证
+            const { data, error } = await supabase
+                .from('allowed_users')
+                .select('name')
+                .eq('name', name.trim());
+            
+            if (error) {
+                console.error('Error checking name:', error);
+                return ALLOWED_NAMES.includes(name.trim());
+            }
+            
+            return data.length > 0;
+        }
+        
+        async function handleLogin() {
+            clearErrors();
+            const name = document.getElementById('login-name').value.trim();
+            const password = document.getElementById('login-password').value;
+            
             if (!name) {
-                showError(nameInput, '请输入姓名');
+                showError('login-name-error', '请输入姓名');
                 return;
             }
-            if (!email) {
-                showError(emailInput, '请输入邮箱');
-                return;
-            }
-            if (!studentId) {
-                showError(studentIdInput, '请输入学号');
-                return;
-            }
+            
             if (!password) {
-                showError(passwordInput, '请输入密码');
+                showError('login-password-error', '请输入密码');
                 return;
             }
-            if (password !== confirmPassword) {
-                showError(confirmPasswordInput, '两次输入的密码不一致');
+            
+            let user = null;
+            
+            if (useLocalStorage) {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                user = users.find(u => u.name === name);
+            } else {
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('name', name)
+                    .single();
+                
+                if (!error) {
+                    user = data;
+                }
+            }
+            
+            if (!user) {
+                showError('login-name-error', '该用户未注册，请先注册');
                 return;
             }
-
-            // 检查用户是否已存在
-            if (findUser(email)) {
-                showError(emailInput, '该邮箱已注册，请直接登录');
+            
+            if (user.password !== password) {
+                showError('login-password-error', '密码错误');
                 return;
             }
-
-            // 注册成功
-            const newUser = {
-                name: name,
-                email: email,
-                studentId: studentId,
-                password: password
-            };
-            saveUser(newUser);
+            
             localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('currentUser', email);
-            window.location.href = 'index.html';
-        });
-
-        // 第三方登录按钮点击事件
-        document.querySelectorAll('.fa-weixin, .fa-qq, .fa-weibo').forEach(icon => {
-            icon.parentElement.addEventListener('click', () => {
-                // 模拟第三方登录成功
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('currentUser', 'third-party-user');
-                window.location.href = 'index.html';
-            });
-        });
-
-        // 输入框焦点事件，移除错误提示
-        const inputs = document.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('focus', () => {
-                removeError(input);
-            });
-        });
+            localStorage.setItem('currentUser', JSON.stringify({ name: user.name }));
+            window.location.href = 'main.html';
+        }
+        
+        async function handleRegister() {
+            clearErrors();
+            const name = document.getElementById('register-name').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+            
+            if (!name) {
+                showError('register-name-error', '请输入姓名');
+                return;
+            }
+            
+            const isInList = await checkNameInList(name);
+            if (!isInList) {
+                showError('register-name-error', '您的姓名不在允许名单中，请联系管理员');
+                return;
+            }
+            
+            const successEl = document.getElementById('register-name-success');
+            successEl.textContent = '姓名已核验通过';
+            successEl.style.display = 'block';
+            
+            if (!password) {
+                showError('register-password-error', '请设置密码');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showError('register-password-error', '密码至少需要6位');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showError('register-confirm-error', '两次密码输入不一致');
+                return;
+            }
+            
+            let existingUser = null;
+            
+            if (useLocalStorage) {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                existingUser = users.find(u => u.name === name);
+            } else {
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('name')
+                    .eq('name', name)
+                    .single();
+                
+                if (!error) {
+                    existingUser = data;
+                }
+            }
+            
+            if (existingUser) {
+                showError('register-name-error', '该用户已注册，请直接登录');
+                return;
+            }
+            
+            if (useLocalStorage) {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                users.push({ name, password });
+                localStorage.setItem('users', JSON.stringify(users));
+            } else {
+                const { error } = await supabase
+                    .from('users')
+                    .insert({ name, password });
+                
+                if (error) {
+                    console.error('Error registering user:', error);
+                    alert('注册失败，请重试');
+                    return;
+                }
+            }
+            
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('currentUser', JSON.stringify({ name }));
+            window.location.href = 'main.html';
+        }
+        
+        window.handleLogin = handleLogin;
+        window.handleRegister = handleRegister;
+        window.showLoginSection = showLoginSection;
+        window.showRegisterSection = showRegisterSection;
     </script>
 </body>
 </html>
