@@ -188,11 +188,6 @@
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.1/+esm';
         import { supabaseUrl, supabaseKey } from './supabaseConfig.js';
         
-        const isLoggedIn = localStorage.getItem('isLoggedIn');
-        if (isLoggedIn === 'true') {
-            window.location.href = 'main.html';
-        }
-        
         let supabase = null;
         let useLocalStorage = true;
         
