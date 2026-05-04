@@ -184,45 +184,7 @@
         </div>
     </div>
 
-    <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.33.1/+esm';
-        import { supabaseUrl, supabaseKey } from './supabaseConfig.js';
-        
-        let supabase = null;
-        let useLocalStorage = true;
-        
-        async function testSupabaseConnection() {
-            try {
-                const timeoutPromise = new Promise((_, reject) => {
-                    setTimeout(() => reject(new Error('Timeout')), 3000);
-                });
-                
-                supabase = createClient(supabaseUrl, supabaseKey);
-                
-                const { data, error } = await Promise.race([
-                    supabase.from('users').select('*').limit(1),
-                    timeoutPromise
-                ]);
-                
-                return !error;
-            } catch {
-                return false;
-            }
-        }
-        
-        testSupabaseConnection().then((connected) => {
-            if (connected) {
-                useLocalStorage = false;
-                console.log('Supabase 连接成功');
-            } else {
-                console.warn('Supabase 连接失败或超时，使用本地存储模式');
-                useLocalStorage = true;
-            }
-        }).catch(() => {
-            console.warn('Supabase 连接异常，使用本地存储模式');
-            useLocalStorage = true;
-        });
-        
+    <script>
         const ALLOWED_NAMES = [
             '张三', '李四', '王五', '赵六', '钱七',
             '孙八', '周九', '吴十', '郑一', '陈二',
@@ -259,27 +221,20 @@
             document.getElementById('login-section').classList.remove('active');
         }
         
-        async function checkNameInList(name) {
+        function checkNameInList(name) {
             if (!name.trim()) return false;
-            
-            if (useLocalStorage) {
-                return ALLOWED_NAMES.includes(name.trim());
-            }
-            
-            const { data, error } = await supabase
-                .from('allowed_users')
-                .select('name')
-                .eq('name', name.trim());
-            
-            if (error) {
-                console.error('Error checking name:', error);
-                return ALLOWED_NAMES.includes(name.trim());
-            }
-            
-            return data.length > 0;
+            return ALLOWED_NAMES.includes(name.trim());
         }
         
-        async function handleLogin() {
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('users') || '[]');
+        }
+        
+        function saveUsers(users) {
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+        
+        function handleLogin() {
             clearErrors();
             const name = document.getElementById('login-name').value.trim();
             const password = document.getElementById('login-password').value;
@@ -294,22 +249,8 @@
                 return;
             }
             
-            let user = null;
-            
-            if (useLocalStorage) {
-                const users = JSON.parse(localStorage.getItem('users') || '[]');
-                user = users.find(u => u.name === name);
-            } else {
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('name', name)
-                    .single();
-                
-                if (!error) {
-                    user = data;
-                }
-            }
+            const users = getUsers();
+            const user = users.find(u => u.name === name);
             
             if (!user) {
                 showError('login-name-error', '该用户未注册，请先注册');
@@ -326,7 +267,7 @@
             window.location.href = 'main.html';
         }
         
-        async function handleRegister() {
+        function handleRegister() {
             clearErrors();
             const name = document.getElementById('register-name').value.trim();
             const password = document.getElementById('register-password').value;
@@ -337,7 +278,7 @@
                 return;
             }
             
-            const isInList = await checkNameInList(name);
+            const isInList = checkNameInList(name);
             if (!isInList) {
                 showError('register-name-error', '您的姓名不在允许名单中，请联系管理员');
                 return;
@@ -362,43 +303,16 @@
                 return;
             }
             
-            let existingUser = null;
-            
-            if (useLocalStorage) {
-                const users = JSON.parse(localStorage.getItem('users') || '[]');
-                existingUser = users.find(u => u.name === name);
-            } else {
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('name')
-                    .eq('name', name)
-                    .single();
-                
-                if (!error) {
-                    existingUser = data;
-                }
-            }
+            const users = getUsers();
+            const existingUser = users.find(u => u.name === name);
             
             if (existingUser) {
                 showError('register-name-error', '该用户已注册，请直接登录');
                 return;
             }
             
-            if (useLocalStorage) {
-                const users = JSON.parse(localStorage.getItem('users') || '[]');
-                users.push({ name, password });
-                localStorage.setItem('users', JSON.stringify(users));
-            } else {
-                const { error } = await supabase
-                    .from('users')
-                    .insert({ name, password });
-                
-                if (error) {
-                    console.error('Error registering user:', error);
-                    alert('注册失败，请重试');
-                    return;
-                }
-            }
+            users.push({ name, password });
+            saveUsers(users);
             
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('currentUser', JSON.stringify({ name }));
